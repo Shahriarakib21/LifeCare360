@@ -1,0 +1,12 @@
+﻿src/controllers/doctor.controller.ts(693,11): error TS2304: Cannot find name 'io'.
+src/controllers/doctor.controller.ts(719,13): error TS2304: Cannot find name 'io'.
+src/controllers/doctor.controller.ts(1010,11): error TS2304: Cannot find name 'io'.
+src/controllers/doctor.controller.ts(1054,9): error TS2304: Cannot find name 'io'.
+src/controllers/doctor.controller.ts(1067,15): error TS2304: Cannot find name 'io'.
+src/controllers/doctor.controller.ts(1089,38): error TS2304: Cannot find name 'io'.
+src/controllers/finance.controller.ts(24,13): error TS2322: Type 'Response<any, Record<string, any>>' is not assignable to type 'void'.
+src/controllers/finance.controller.ts(138,13): error TS2322: Type 'Response<any, Record<string, any>>' is not assignable to type 'void'.
+src/controllers/lab.controller.ts(1113,14): error TS2451: Cannot redeclare block-scoped variable 'deleteTestPrice'.
+src/controllers/lab.controller.ts(1326,9): error TS2304: Cannot find name 'io'.
+src/controllers/lab.controller.ts(1333,9): error TS2304: Cannot find name 'io'.
+src/controllers/lab.controller.ts(2041,14): error TS2451: Cannot redeclare block-scoped variable 'deleteTestPrice'.

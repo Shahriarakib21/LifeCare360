@@ -11,8 +11,82 @@ import Notification from '../models/mongodb/Notification.model';
 import { AppError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
 import { getIO } from '../utils/socket';
-import { notifyLabPayment, notifyResultUploaded } from '../utils/notifications';
+import { createNotification, notifyLabPayment, notifyResultUploaded } from '../utils/notifications';
 import RevenueTransaction from '../models/mongodb/RevenueTransaction.model';
+import UnifiedPayment from '../models/mongodb/UnifiedPayment.model';
+
+/**
+ * Internal helper to sync revenue when a lab test is completed and paid
+ */
+const syncLabRevenue = async (requestId: string): Promise<boolean> => {
+  try {
+    const request = await EHR.findById(requestId);
+    if (!request || request.type !== 'lab-test-request') return false;
+
+    // Must be completed or report uploaded and not already processed for revenue
+    const status = request.data?.labTestRequest?.status;
+    if ((status !== 'completed' && status !== 'REPORT_UPLOADED') || request.data?.labTestRequest?.revenueAdded) {
+      return false;
+    }
+
+    // Must have a completed payment
+    const payment = await UnifiedPayment.findOne({
+      serviceId: requestId,
+      serviceType: 'lab',
+      paymentStatus: 'paid'
+    });
+
+    if (!payment) {
+      logger.info(`Revenue Sync: No paid unified payment found for request ${requestId}`);
+      return false;
+    }
+
+    // Calculate revenue (excluding platform commission if logic exists, for now using totalAmount)
+    // NOTE: The LabRevenue.updateRevenue expects a breakdown. 
+    // We can construct it from the payment's itemBreakdown.
+    const testBreakdown = payment.itemBreakdown.map((item: any) => ({
+      testName: item.name,
+      price: item.total
+    }));
+
+    // Update Lab Revenue Account (Aggregate by day)
+    await (LabRevenue as any).updateRevenue(
+      payment.providerId,
+      payment.totalAmount,
+      testBreakdown
+    );
+
+    // Create a Revenue Transaction record for auditing
+    await RevenueTransaction.create({
+      type: 'lab',
+      amount: payment.totalAmount,
+      patientUserId: payment.patientId,
+      providerUserId: payment.providerId,
+      serviceId: requestId,
+      transactionId: payment.transactionId || `AUTO-${Date.now()}`,
+      paymentMethod: payment.paymentMethod || 'online',
+      status: 'completed',
+      date: new Date(),
+      metadata: {
+        invoiceId: payment.invoiceId,
+        labRequestId: requestId
+      }
+    });
+
+    // Mark as processed
+    if (request.data && (request.data as any).labTestRequest) {
+      (request.data as any).labTestRequest.revenueAdded = true;
+      request.markModified('data');
+      await request.save();
+    }
+
+    logger.info(`Revenue Sync: Successfully recorded revenue for request ${requestId}`);
+    return true;
+  } catch (error: any) {
+    logger.error(`Revenue Sync Error for request ${requestId}:`, error);
+    return false;
+  }
+};
 
 // Upload test results
 export const uploadTestResults = async (
@@ -43,7 +117,10 @@ export const uploadTestResults = async (
       date: date ? new Date(date) : new Date(),
       recordedBy: req.user!.id,
       data: {
-        labResults: Array.isArray(results) ? results : [results],
+        labResults: (Array.isArray(results) ? results : [results]).map((r: any) => ({
+          ...r,
+          unit: r.unit || 'units'
+        })),
       },
     });
 
@@ -68,9 +145,12 @@ export const uploadTestResults = async (
         request.tags = currentTags.filter(tag => tag !== 'ASSIGNED' && tag !== 'REQUESTED');
         request.tags.push('completed');
 
-        request.markModified('data');
         request.markModified('tags');
         await request.save();
+
+        // Sync revenue if applicable
+        await syncLabRevenue(requestId);
+
         if (logger) {
           logger.info(`Lab request ${requestId} marked as completed via uploadTestResults`);
         }
@@ -259,8 +339,8 @@ export const getLabRequests = async (
     if (status && status !== 'all' && status !== 'pending_only') {
       query['data.labTestRequest.status'] = status;
     } else if (status === 'pending_only') {
-      // Internal flag for getPendingRequests
-      query['data.labTestRequest.status'] = { $in: ['ASSIGNED', 'PAID', 'pending', 'REQUESTED', 'IN_PROGRESS'] };
+      // Internal flag for getPendingRequests - only actionable items for the lab
+      query['data.labTestRequest.status'] = { $in: ['PAID', 'SAMPLE_COLLECTED', 'IN_PROGRESS'] };
     }
     // If no status or status is 'all', it returns everything for that lab
 
@@ -454,7 +534,7 @@ export const submitTestResults = async (
         labResults: results.map((result: any) => ({
           testName: result.testName,
           value: result.value,
-          unit: result.unit,
+          unit: result.unit || 'units',
           normalRange: {
             min: result.normalRange?.min || 0,
             max: result.normalRange?.max || 100,
@@ -557,9 +637,11 @@ export const submitTestResults = async (
       }
       request.tags = (request.tags || []).filter((tag: string) => tag !== 'ASSIGNED' && tag !== 'REQUESTED');
       request.tags.push('completed');
-      request.markModified('data');
       request.markModified('tags');
       await request.save();
+
+      // Sync revenue if applicable
+      await syncLabRevenue(requestId);
     }
 
     if (logger) {
@@ -898,7 +980,7 @@ export const getDashboardStats = async (
     const assignedCount = allRequests.filter((r: any) => {
       try {
         const s = r?.data?.labTestRequest?.status;
-        return (s === 'ASSIGNED' || s === 'pending' || s === 'REQUESTED' || s === 'IN_PROGRESS');
+        return (s === 'PAID' || s === 'SAMPLE_COLLECTED' || s === 'IN_PROGRESS');
       } catch (e) {
         return false;
       }
@@ -992,8 +1074,29 @@ export const getDashboardStats = async (
     // Convert to array for chart
     const testTypeChart = Object.entries(testTypeStats)
       .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
+      .sort((a: any, b: any) => b.count - a.count)
       .slice(0, 10); // Top 10 tests
+
+    // Get revenue data from LabRevenue model
+    const revenueData = await LabRevenue.find({
+      labId: labUserId,
+      date: { $gte: startOfMonth }
+    }).lean();
+
+    const todayRevenue = revenueData
+      .filter((r: any) => new Date(r.date).setHours(0, 0, 0, 0) === startOfToday.getTime())
+      .reduce((sum: number, r: any) => sum + r.totalRevenue, 0);
+
+    const monthRevenue = revenueData
+      .reduce((sum: number, r: any) => sum + r.totalRevenue, 0);
+
+    // Get completed paid tests count
+    const completedPaidCount = await EHR.countDocuments({
+      type: 'lab-test-request',
+      'data.labTestRequest.labId': labUserId,
+      'data.labTestRequest.status': { $in: ['completed', 'REPORT_UPLOADED'] },
+      'data.labTestRequest.revenueAdded': true
+    });
 
     res.json({
       success: true,
@@ -1006,8 +1109,17 @@ export const getDashboardStats = async (
           monthTests: monthResults || 0,
           criticalAlerts: criticalCount || 0,
           completedToday: todayResults || 0,
+          todayRevenue: todayRevenue || 0,
+          monthRevenue: monthRevenue || 0,
+          completedPaidTests: completedPaidCount || 0,
+          growthRate: 15, // Keep mock for now
         },
         testTypeChart: testTypeChart || [],
+        revenueData: revenueData.map((r: any) => ({
+          date: r.date,
+          revenue: r.totalRevenue,
+          tests: r.testCount
+        }))
       },
     });
   } catch (error: any) {
@@ -1820,12 +1932,45 @@ export const getRevenueAnalytics = async (
 ): Promise<void> => {
   try {
     const labUserId = req.user!.id;
-    const now = new Date();
+    const { startDate, endDate, limit = 50, skip = 0 } = req.query;
+
+    const query: any = { providerUserId: labUserId, type: 'lab' };
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) query.date.$gte = new Date(startDate as string);
+      if (endDate) query.date.$lte = new Date(endDate as string);
+    }
+
+    const transactions = await RevenueTransaction.find(query)
+      .sort({ date: -1 })
+      .skip(Number(skip))
+      .limit(Number(limit))
+      .lean();
+
+    const totalCount = await RevenueTransaction.countDocuments(query);
+
+    // Aggregate monthly revenue for chart
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const monthlyStats = await LabRevenue.aggregate([
+      { $match: { labId: new mongoose.Types.ObjectId(labUserId), date: { $gte: sixMonthsAgo } } },
+      {
+        $group: {
+          _id: { month: { $month: "$date" }, year: { $year: "$date" } },
+          revenue: { $sum: "$totalRevenue" },
+          tests: { $sum: "$testCount" },
+          date: { $first: "$date" }
+        }
+      },
+      { $sort: { "date": 1 } }
+    ]);
 
     // Get today's revenue
+    const now = new Date();
     const today = new Date(now);
     today.setHours(0, 0, 0, 0);
-    const todayRevenue = await LabRevenue.findOne({
+    const todayRevenueDoc = await LabRevenue.findOne({
       labId: labUserId,
       date: today
     }).lean();
@@ -1834,32 +1979,32 @@ export const getRevenueAnalytics = async (
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
-    const weekRevenue = await LabRevenue.find({
+    const weekRevenueDocs = await LabRevenue.find({
       labId: labUserId,
       date: { $gte: startOfWeek }
     }).lean();
 
     // Get this month's revenue
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const monthRevenue = await LabRevenue.find({
+    const monthRevenueDocs = await LabRevenue.find({
       labId: labUserId,
       date: { $gte: startOfMonth }
     }).lean();
 
     // Get total revenue (all time)
-    const allRevenue = await LabRevenue.find({
+    const allRevenueDocs = await LabRevenue.find({
       labId: labUserId
     }).lean();
 
     // Calculate daily trend (last 30 days)
     const thirtyDaysAgo = new Date(now);
     thirtyDaysAgo.setDate(now.getDate() - 30);
-    const dailyTrend = await LabRevenue.find({
+    const dailyTrendDocs = await LabRevenue.find({
       labId: labUserId,
       date: { $gte: thirtyDaysAgo }
     }).sort({ date: 1 }).lean();
 
-    const dailyTrendData = dailyTrend.map(r => ({
+    const dailyTrend = dailyTrendDocs.map(r => ({
       date: new Date(r.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       revenue: r.totalRevenue,
       tests: r.testCount
@@ -1867,44 +2012,69 @@ export const getRevenueAnalytics = async (
 
     // Top revenue-generating tests
     const testRevenueMap = new Map<string, number>();
-    allRevenue.forEach(record => {
+    const testCountMap = new Map<string, number>();
+    allRevenueDocs.forEach(record => {
       if (record.revenueByTest) {
         record.revenueByTest.forEach((value: number, key: string) => {
           testRevenueMap.set(key, (testRevenueMap.get(key) || 0) + value);
+          testCountMap.set(key, (testCountMap.get(key) || 0) + 1); // Simple count per day record
         });
       }
     });
 
     const topTests = Array.from(testRevenueMap.entries())
-      .map(([testName, revenue]) => ({ testName, revenue }))
+      .map(([testName, revenue]) => ({
+        testName,
+        revenue,
+        count: testCountMap.get(testName) || 0
+      }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 10);
+
+    // Get yearly revenue
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const yearlyRevenueDocs = await LabRevenue.find({
+      labId: labUserId,
+      date: { $gte: startOfYear }
+    }).lean();
 
     res.json({
       success: true,
       data: {
         today: {
-          revenue: (todayRevenue as any)?.totalRevenue || 0,
-          tests: (todayRevenue as any)?.testCount || 0,
-          payments: (todayRevenue as any)?.paymentCount || 0
+          revenue: (todayRevenueDoc as any)?.totalRevenue || 0,
+          tests: (todayRevenueDoc as any)?.testCount || 0,
+          payments: (todayRevenueDoc as any)?.paymentCount || 0
         },
         week: {
-          revenue: weekRevenue.reduce((sum, r) => sum + (r.totalRevenue || 0), 0),
-          tests: weekRevenue.reduce((sum, r) => sum + (r.testCount || 0), 0),
-          payments: weekRevenue.reduce((sum, r) => sum + (r.paymentCount || 0), 0)
+          revenue: weekRevenueDocs.reduce((sum, r) => sum + (r.totalRevenue || 0), 0),
+          tests: weekRevenueDocs.reduce((sum, r) => sum + (r.testCount || 0), 0),
+          payments: weekRevenueDocs.reduce((sum, r) => sum + (r.paymentCount || 0), 0)
         },
         month: {
-          revenue: monthRevenue.reduce((sum, r) => sum + (r.totalRevenue || 0), 0),
-          tests: monthRevenue.reduce((sum, r) => sum + (r.testCount || 0), 0),
-          payments: monthRevenue.reduce((sum, r) => sum + (r.paymentCount || 0), 0)
+          revenue: monthRevenueDocs.reduce((sum, r) => sum + (r.totalRevenue || 0), 0),
+          tests: monthRevenueDocs.reduce((sum, r) => sum + (r.testCount || 0), 0),
+          payments: monthRevenueDocs.reduce((sum, r) => sum + (r.paymentCount || 0), 0)
+        },
+        year: {
+          revenue: yearlyRevenueDocs.reduce((sum, r) => sum + (r.totalRevenue || 0), 0),
+          tests: yearlyRevenueDocs.reduce((sum, r) => sum + (r.testCount || 0), 0),
+          payments: yearlyRevenueDocs.reduce((sum, r) => sum + (r.paymentCount || 0), 0)
         },
         total: {
-          revenue: allRevenue.reduce((sum, r) => sum + (r.totalRevenue || 0), 0),
-          tests: allRevenue.reduce((sum, r) => sum + (r.testCount || 0), 0),
-          payments: allRevenue.reduce((sum, r) => sum + (r.paymentCount || 0), 0)
+          revenue: allRevenueDocs.reduce((sum, r) => sum + (r.totalRevenue || 0), 0),
+          tests: allRevenueDocs.reduce((sum, r) => sum + (r.testCount || 0), 0),
+          payments: allRevenueDocs.reduce((sum, r) => sum + (r.paymentCount || 0), 0)
         },
-        dailyTrend: dailyTrendData,
-        topTests
+        dailyTrend,
+        topTests,
+        transactions,
+        pagination: {
+          total: totalCount,
+          limit: Number(limit),
+          skip: Number(skip)
+        },
+        monthlyStats
       },
     });
   } catch (error) {
@@ -2116,9 +2286,12 @@ export const updateLabRequestStatus = async (
         request.data.labTestRequest.completedAt = new Date();
       }
 
-      request.markModified('data');
       request.markModified('tags');
       await request.save();
+
+      if (status === 'completed' || status === 'REPORT_UPLOADED') {
+        await syncLabRevenue(requestId);
+      }
     }
 
     // Notify patient
@@ -2128,12 +2301,36 @@ export const updateLabRequestStatus = async (
       const targetUserId = patientDoc?.userId;
 
       if (targetUserId) {
+        const labUser = await User.findById(labUserId).select('profile email').lean();
+        const labName = (labUser as any)?.profile?.firstName
+          ? `${(labUser as any).profile.firstName} ${(labUser as any).profile.lastName || ''}`.trim()
+          : 'The Laboratory';
+
+        const notifType = status === 'REPORT_UPLOADED' ? 'result_uploaded' : 'test_completed';
+        const title = status === 'REPORT_UPLOADED' ? 'Lab Results Available' : 'Lab Test Update';
+        const message = `${labName} has updated your lab test status to: ${status.replace('_', ' ')}`;
+
+        // Create persistent notification
+        const notification = await createNotification(
+          targetUserId,
+          notifType,
+          title,
+          message,
+          { requestId: requestId, status, labName }
+        );
+
+        // Send real-time notification
         getIO().to(targetUserId.toString()).emit('notification', {
-          title: 'Lab Test Update',
-          message: `Your lab test status has been updated to: ${status.replace('_', ' ')}`,
-          type: status === 'REPORT_UPLOADED' ? 'result_uploaded' : 'lab_order',
-          data: { requestId, status }
+          _id: notification._id,
+          title: notification.title,
+          message: notification.message,
+          type: notification.type,
+          data: notification.data,
+          createdAt: notification.createdAt,
+          read: false
         });
+
+        logger.info(`Patient ${targetUserId} notified about lab status update: ${status}`);
       }
     }
 
@@ -2141,6 +2338,131 @@ export const updateLabRequestStatus = async (
       success: true,
       message: `Status updated to ${status}`,
       data: { request }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get available labs for tests in a request
+export const getAvailableLabsForTests = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { requestId } = req.params;
+    const request = await EHR.findById(requestId);
+
+    if (!request || request.type !== 'lab-test-request') {
+      throw new AppError('Lab test request not found', 404);
+    }
+
+    const requestedTests = (request.data as any)?.labTestRequest?.tests || [];
+    const testNames = requestedTests.map((t: any) => typeof t === 'string' ? t : (t.name || t.testName));
+
+    if (testNames.length === 0) {
+      throw new AppError('No tests found in request', 400);
+    }
+
+    // Find all labs that offer AT LEAST ONE of these tests
+    const testNameConditions = testNames.map((name: string) => ({
+      testName: { $regex: name.replace(/[.*+?^${}|[\]\\]/g, '\\$&'), $options: 'i' }
+    }));
+
+    const priceRecords = await TestPrice.find({
+      active: true,
+      $or: testNameConditions
+    }).lean();
+
+    // Group by labId
+    const labMap = new Map<string, any>();
+    for (const record of priceRecords) {
+      const labId = (record as any).labId.toString();
+      if (!labMap.has(labId)) {
+        labMap.set(labId, {
+          labId,
+          tests: [],
+          totalPrice: 0,
+          matchCount: 0
+        });
+      }
+      const data = labMap.get(labId);
+      data.tests.push({
+        testName: (record as any).testName,
+        price: (record as any).price,
+        estimatedDeliveryTime: (record as any).estimatedDeliveryTime
+      });
+      data.totalPrice += (record as any).price;
+      data.matchCount += 1;
+    }
+
+    // Return all matched labs
+    const availableLabs = [];
+    for (const [labId, data] of labMap) {
+      const labUser = await User.findById(labId).select('profile labDetails email').lean();
+      if (labUser) {
+        availableLabs.push({
+          ...data,
+          labName: (labUser as any).profile?.firstName
+            ? `${(labUser as any).profile.firstName} ${(labUser as any).profile.lastName || ''}`.trim()
+            : (labUser as any).email.split('@')[0],
+          labDetails: (labUser as any).labDetails,
+          isFullMatch: data.matchCount === testNames.length
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      data: { availableLabs },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Assign a selected lab to a request
+export const assignLabToRequest = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { requestId } = req.params;
+    const { labId } = req.body;
+    const patientUserId = req.user!.id;
+
+    if (!labId) {
+      throw new AppError('Lab ID is required', 400);
+    }
+
+    const request = await EHR.findById(requestId).populate('patientId');
+    if (!request || request.type !== 'lab-test-request') {
+      throw new AppError('Lab test request not found', 404);
+    }
+
+    // Verify ownership
+    const patient = await Patient.findById(request.patientId);
+    if (!patient || patient.userId.toString() !== patientUserId) {
+      throw new AppError('Access denied', 403);
+    }
+
+    // Update request with assigned lab
+    if (request.data && (request.data as any).labTestRequest) {
+      (request.data as any).labTestRequest.labId = new mongoose.Types.ObjectId(labId);
+      (request.data as any).labTestRequest.assignedAt = new Date();
+      (request.data as any).labTestRequest.assignedBy = new mongoose.Types.ObjectId(patientUserId);
+      (request.data as any).labTestRequest.status = 'Payment Pending';
+
+      request.markModified('data');
+      await request.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Lab assigned successfully. You can now proceed to payment.',
+      data: { request },
     });
   } catch (error) {
     next(error);

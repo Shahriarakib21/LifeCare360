@@ -237,6 +237,17 @@ export default function PatientDashboard() {
                 VIEW RESULTS
               </button>
             )}
+            {notif.type === 'lab_order' && (
+              <button
+                className="text-xs text-teal-600 font-bold mt-1 text-left"
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  router.push('/patient/lab-requests');
+                }}
+              >
+                VIEW REQUEST
+              </button>
+            )}
             {notif.type?.startsWith('appointment') && (
               <button
                 className="text-xs text-teal-600 font-bold mt-1 text-left"

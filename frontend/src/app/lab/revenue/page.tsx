@@ -21,6 +21,7 @@ interface RevenueAnalytics {
     today: { revenue: number; tests: number; payments: number };
     week: { revenue: number; tests: number; payments: number };
     month: { revenue: number; tests: number; payments: number };
+    year: { revenue: number; tests: number; payments: number };
     total: { revenue: number; tests: number; payments: number };
     dailyTrend: Array<{ date: string; revenue: number; tests: number }>;
     topTests: Array<{ testName: string; revenue: number; count: number }>;
@@ -73,23 +74,24 @@ export default function LabRevenuePage() {
             </div>
 
             {/* Core Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 {[
-                    { label: "Today's Earnings", value: data.today.revenue, period: "24H Delta", icon: DollarSign, color: "cyan" },
-                    { label: "Weekly Revenue", value: data.week.revenue, period: "7D Volume", icon: TrendingUp, color: "indigo" },
-                    { label: "Monthly Gross", value: data.month.revenue, period: "30D Cycle", icon: Wallet, color: "emerald" },
-                    { label: "Total Asset Value", value: data.total.revenue, period: "Lifetime", icon: CreditCard, color: "violet" }
+                    { label: "Today", value: data.today.revenue, period: "24H Delta", icon: DollarSign, color: "cyan" },
+                    { label: "Weekly", value: data.week.revenue, period: "7D Volume", icon: TrendingUp, color: "indigo" },
+                    { label: "Monthly", value: data.month.revenue, period: "30D Cycle", icon: Wallet, color: "emerald" },
+                    { label: "Yearly", value: data.year?.revenue || 0, period: "YTD", icon: Calendar, color: "orange" },
+                    { label: "Lifetime", value: data.total.revenue, period: "All Time", icon: CreditCard, color: "violet" }
                 ].map((stat, i) => (
-                    <div key={i} className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-100 group hover:border-cyan-200 transition-all">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 flex items-center justify-center text-${stat.color}-500 group-hover:scale-110 transition-transform`}>
-                                <stat.icon size={24} />
+                    <div key={i} className="bg-white rounded-[2.5rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-100 group hover:border-cyan-200 transition-all">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className={`w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-cyan-50 group-hover:text-cyan-500 group-hover:scale-110 transition-all`}>
+                                <stat.icon size={20} />
                             </div>
                             <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">{stat.period}</span>
                         </div>
                         <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</h4>
                         <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-black text-slate-900">৳{stat.value.toLocaleString()}</span>
+                            <span className="text-2xl font-black text-slate-900 text-nowrap">৳{stat.value.toLocaleString()}</span>
                         </div>
                     </div>
                 ))}

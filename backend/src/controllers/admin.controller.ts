@@ -12,6 +12,7 @@ import { AppError } from '../middleware/errorHandler';
 import { Op } from 'sequelize';
 import { Parser } from 'json2csv';
 import mongoose from 'mongoose';
+import LabRevenue from '../models/mongodb/LabRevenue.model';
 
 // Get Dashboard Stats
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
@@ -813,7 +814,11 @@ export const getAdminLabRevenue = async (req: Request, res: Response, next: Next
             {
                 $project: {
                     labId: "$_id",
-                    labName: { $concat: ["$labInfo.profile.firstName", " ", "$labInfo.profile.lastName"] },
+                    labName: {
+                        $trim: {
+                            input: { $concat: ["$labInfo.profile.firstName", " ", { $ifNull: ["$labInfo.profile.lastName", ""] }] }
+                        }
+                    },
                     totalRevenue: 1,
                     testCount: 1,
                     transactionCount: 1,
@@ -823,9 +828,29 @@ export const getAdminLabRevenue = async (req: Request, res: Response, next: Next
             { $sort: { totalRevenue: -1 } }
         ]);
 
+        // Get overall test-wise breakdown for the selected lab(s)
+        const breakdownQuery: any = {};
+        if (labId && labId !== 'all') breakdownQuery.labId = new mongoose.Types.ObjectId(labId as string);
+        if (startDate || endDate) {
+            breakdownQuery.date = {};
+            if (startDate) breakdownQuery.date.$gte = new Date(startDate as string);
+            if (endDate) breakdownQuery.date.$lte = new Date(endDate as string);
+        }
+
+        const testBreakdown = await LabRevenue.aggregate([
+            { $match: breakdownQuery },
+            { $project: { revenueByTest: { $objectToArray: "$revenueByTest" } } },
+            { $unwind: "$revenueByTest" },
+            { $group: { _id: "$revenueByTest.k", totalRevenue: { $sum: "$revenueByTest.v" } } },
+            { $sort: { totalRevenue: -1 } }
+        ]);
+
         res.status(200).json({
             success: true,
-            data: stats
+            data: {
+                labStats: stats,
+                testBreakdown
+            }
         });
     } catch (error) {
         next(error);
@@ -875,3 +900,103 @@ export const getAdminLabStats = async (req: Request, res: Response, next: NextFu
         next(error);
     }
 };
+
+/**
+ * Get Global Lab Revenue (Admin)
+ */
+export const getGlobalLabRevenue = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        const match: any = { type: 'lab' };
+        if (startDate || endDate) {
+            match.date = {};
+            if (startDate) match.date.$gte = new Date(startDate as string);
+            if (endDate) {
+                const end = new Date(endDate as string);
+                end.setHours(23, 59, 59, 999);
+                match.date.$lte = end;
+            }
+        }
+
+        // 1. Get Aggregated Totals
+        const aggregateStats = await RevenueTransaction.aggregate([
+            { $match: match },
+            {
+                $group: {
+                    _id: null,
+                    totalRevenue: { $sum: "$amount" },
+                    totalTests: { $sum: { $ifNull: ["$metadata.testCount", 1] } },
+                    labCount: { $addToSet: "$providerUserId" }
+                }
+            }
+        ]);
+
+        const totals = aggregateStats[0] || { totalRevenue: 0, totalTests: 0, labCount: [] };
+
+        // 2. Daily Trend
+        const dailyTrend = await RevenueTransaction.aggregate([
+            { $match: match },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+                    revenue: { $sum: "$amount" },
+                    tests: { $sum: { $ifNull: ["$metadata.testCount", 1] } }
+                }
+            },
+            { $sort: { _id: 1 } },
+            {
+                $project: {
+                    _id: 0,
+                    date: "$_id",
+                    revenue: 1,
+                    tests: 1
+                }
+            }
+        ]);
+
+        // 3. Lab Breakdown
+        const labBreakdown = await RevenueTransaction.aggregate([
+            { $match: match },
+            {
+                $group: {
+                    _id: "$providerUserId",
+                    revenue: { $sum: "$amount" },
+                    tests: { $sum: { $ifNull: ["$metadata.testCount", 1] } }
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "labInfo"
+                }
+            },
+            { $unwind: "$labInfo" },
+            {
+                $project: {
+                    labId: "$_id",
+                    labName: { $concat: ["$labInfo.profile.firstName", " ", "$labInfo.profile.lastName"] },
+                    revenue: 1,
+                    tests: 1
+                }
+            },
+            { $sort: { revenue: -1 } }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                totalRevenue: totals.totalRevenue,
+                totalTests: totals.totalTests,
+                labCount: totals.labCount.length,
+                dailyTrend,
+                labBreakdown
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+

@@ -2,10 +2,11 @@ import { Response } from 'express';
 import UnifiedPayment from '../models/mongodb/UnifiedPayment.model';
 import EHR from '../models/mongodb/EHR.model';
 import Appointment from '../models/postgres/Appointment.model';
+import LabRevenue from '../models/mongodb/LabRevenue.model';
 import RevenueTransaction from '../models/mongodb/RevenueTransaction.model';
 import Patient from '../models/mongodb/Patient.model';
 import User from '../models/mongodb/User.model';
-import { createNotification, sendRealtimeNotification } from '../utils/notifications';
+import { createNotification, sendRealtimeNotification, notifyLabPayment } from '../utils/notifications';
 import { getIO } from '../utils/socket';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { AppError } from '../middleware/errorHandler';
@@ -58,6 +59,21 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
                 return res.status(404).json({ success: false, message: 'Lab request not found' });
             }
             providerId = labRequest.data?.labTestRequest?.labId;
+
+            console.log('Lab Payment Initiation:', {
+                requestId: serviceId,
+                extractedProviderId: providerId?.toString(),
+                hasLabTestRequest: !!labRequest.data?.labTestRequest
+            });
+
+            if (!providerId) {
+                console.error('Lab Payment Error: No lab assigned to request', serviceId);
+                return res.status(400).json({
+                    success: false,
+                    message: 'Lab must be assigned before payment. Please select a laboratory first.'
+                });
+            }
+
             metadata.labName = req.body.labName;
             metadata.testNames = itemBreakdown.map((item: any) => item.name);
         } else if (serviceType === 'pharmacy') {
@@ -165,8 +181,56 @@ export const completePayment = async (req: AuthRequest, res: Response) => {
             const labRequest = await EHR.findById(payment.serviceId);
             if (labRequest && labRequest.data?.labTestRequest) {
                 labRequest.data.labTestRequest.status = 'PAID';
+                labRequest.data.labTestRequest.paidAt = payment.paidAt;
+                labRequest.data.labTestRequest.paymentId = payment._id as any;
                 labRequest.markModified('data');
                 await labRequest.save();
+
+                // Update Lab Revenue
+                try {
+                    if (!payment.providerId) {
+                        console.error('Lab Revenue Error: providerId is missing from payment', payment._id);
+                        throw new Error('Provider ID is required for lab revenue tracking');
+                    }
+
+                    const testBreakdown = payment.itemBreakdown.map((item: any) => ({
+                        testName: item.name,
+                        price: item.total
+                    }));
+
+                    console.log('Recording lab revenue:', {
+                        labId: payment.providerId.toString(),
+                        amount: payment.totalAmount,
+                        testCount: testBreakdown.length
+                    });
+
+                    await (LabRevenue as any).updateRevenue(
+                        payment.providerId,
+                        payment.totalAmount,
+                        testBreakdown
+                    );
+
+                    console.log('Lab revenue recorded successfully for lab:', payment.providerId.toString());
+
+                    // Notify Lab
+                    if (getIO()) {
+                        const patientUser = await User.findById(userId);
+                        const patientName = `${patientUser?.profile?.firstName || ''} ${patientUser?.profile?.lastName || ''}`.trim() || patientUser?.email || 'Patient';
+                        const testNames = testBreakdown.map((t: any) => t.testName);
+
+                        await notifyLabPayment(
+                            getIO(),
+                            payment.providerId.toString(),
+                            patientName,
+                            payment.totalAmount,
+                            testNames,
+                            payment.serviceId.toString()
+                        );
+                    }
+                } catch (revenueError) {
+                    console.error('Error updating lab revenue or notifying lab:', revenueError);
+                    // Don't throw - we still want to complete the payment even if revenue tracking fails
+                }
             }
         } else if (payment.serviceType === 'pharmacy') {
             // TODO: Update pharmacy order status

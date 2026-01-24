@@ -155,8 +155,11 @@ export default function UploadReportPage() {
 
   const handleSubmit = async () => {
     if (!selectedRequestId) return toast.error('Please select a request');
-    const validResults = testResults.filter((r) => r.testName && !isNaN(r.value) && r.value >= 0);
-    if (validResults.length === 0) return toast.error('Please enter valid test results');
+    const validResults = testResults.filter((r) => r.testName && !isNaN(r.value) && r.value >= 0 && r.unit.trim() !== '');
+    if (validResults.length === 0) return toast.error('Please enter valid test results including assessment units');
+    if (validResults.length !== testResults.length) {
+      return toast.error('Some results are missing measurement units. All parameters require a valid unit.');
+    }
 
     setSubmitting(true);
     try {

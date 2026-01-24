@@ -26,6 +26,7 @@ const menuItems = [
     { icon: Pill, label: 'My Prescriptions', href: '/patient/medications' },
     { icon: Pill, label: 'Pharmacy Shop', href: '/medicines' },
     { icon: FlaskConical, label: 'Lab Tests & Booking', href: '/patient/lab/booking' },
+    { icon: FlaskConical, label: 'Lab Test Requests', href: '/patient/lab-requests' },
     { icon: FlaskConical, label: 'Lab Orders', href: '/patient/lab/orders' },
     { icon: FlaskConical, label: 'Lab Reports', href: '/patient/reports' },
     { icon: BrainCircuit, label: 'AI Insights', href: '/patient/insights' },

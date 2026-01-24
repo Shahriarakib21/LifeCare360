@@ -29,7 +29,7 @@ import {
   createLabOrder,
   getLabOrders,
 } from '../controllers/patient.controller';
-import { processLabPayment } from '../controllers/lab.controller';
+import { processLabPayment, getAvailableLabsForTests } from '../controllers/lab.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { upload } from '../middleware/upload.middleware';
 
@@ -65,6 +65,7 @@ router.delete('/account', deleteAccount);
 router.put('/appointments/:appointmentId/cancel', cancelAppointment);
 router.get('/labs', getAllLabs);
 router.get('/lab-requests', getLabTestRequests);
+router.get('/lab-requests/:requestId/available-labs', getAvailableLabsForTests);
 router.post('/lab-requests/assign', assignLabToRequest);
 router.post('/lab-requests/pay', processLabPayment);
 router.post('/lab-orders', createLabOrder);

@@ -57,7 +57,7 @@ export interface IEHR extends Document {
       tests: Array<string | { name: string }>;
       notes?: string;
       urgency?: 'routine' | 'urgent' | 'stat' | 'emergency';
-      status?: 'pending' | 'completed' | 'REQUESTED' | 'ASSIGNED' | 'PAID' | 'FAILED' | 'SAMPLE_COLLECTED' | 'IN_PROGRESS' | 'REPORT_UPLOADED';
+      status?: 'Payment Pending' | 'pending' | 'completed' | 'REQUESTED' | 'ASSIGNED' | 'PAID' | 'FAILED' | 'SAMPLE_COLLECTED' | 'IN_PROGRESS' | 'REPORT_UPLOADED';
       requestedAt?: Date;
       completedAt?: Date;
       resultId?: mongoose.Types.ObjectId;
@@ -66,6 +66,7 @@ export interface IEHR extends Document {
       assignedBy?: mongoose.Types.ObjectId;
       paymentId?: mongoose.Types.ObjectId;
       paidAt?: Date;
+      revenueAdded?: boolean;
     };
     // General notes
     notes?: string;
@@ -173,8 +174,8 @@ const EHRSchema: Schema = new Schema(
         },
         status: {
           type: String,
-          enum: ['pending', 'completed', 'REQUESTED', 'ASSIGNED', 'PAID', 'FAILED', 'SAMPLE_COLLECTED', 'IN_PROGRESS', 'REPORT_UPLOADED'],
-          default: 'pending',
+          enum: ['Payment Pending', 'pending', 'completed', 'REQUESTED', 'ASSIGNED', 'PAID', 'FAILED', 'SAMPLE_COLLECTED', 'IN_PROGRESS', 'REPORT_UPLOADED'],
+          default: 'Payment Pending',
         },
         requestedAt: { type: Date, default: Date.now },
         completedAt: Date,
@@ -193,6 +194,10 @@ const EHRSchema: Schema = new Schema(
           ref: 'Payment',
         },
         paidAt: Date,
+        revenueAdded: {
+          type: Boolean,
+          default: false,
+        },
       },
       notes: String,
       attachments: [

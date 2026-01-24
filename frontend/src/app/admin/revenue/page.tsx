@@ -27,7 +27,7 @@ import {
 import api from '@/lib/api';
 import Card from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { formatDate } from '@/utils/date';
+import { formatDate } from '@/lib/utils';
 
 export default function AdminRevenuePage() {
     const [summary, setSummary] = useState<any>(null);
@@ -252,7 +252,7 @@ export default function AdminRevenuePage() {
                                         </td>
                                         <td className="py-4">
                                             <span className={`badge badge-sm ${tx.type === 'doctor' ? 'badge-primary' :
-                                                    tx.type === 'lab' ? 'badge-warning' : 'badge-secondary'
+                                                tx.type === 'lab' ? 'badge-warning' : 'badge-secondary'
                                                 } capitalize`}>
                                                 {tx.type}
                                             </span>

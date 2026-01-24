@@ -27,7 +27,6 @@ const LabRevenueSchema = new Schema<ILabRevenue>(
         totalRevenue: {
             type: Number,
             default: 0,
-            min: 0,
         },
         testCount: {
             type: Number,
@@ -67,18 +66,6 @@ LabRevenueSchema.statics.updateRevenue = async function (
         revenueByTest.set(test.testName, (revenueByTest.get(test.testName) || 0) + test.price);
     });
 
-    const update = {
-        $inc: {
-            totalRevenue: amount,
-            testCount: testBreakdown.length,
-            paymentCount: 1,
-        },
-        $set: {
-            labId,
-            date: today,
-        },
-    };
-
     // Update revenueByTest map
     const revenueDoc = await this.findOne({ labId, date: today });
     if (revenueDoc) {
@@ -98,6 +85,44 @@ LabRevenueSchema.statics.updateRevenue = async function (
             totalRevenue: amount,
             testCount: testBreakdown.length,
             paymentCount: 1,
+            revenueByTest,
+        });
+    }
+};
+
+// Static method to process refund (Negative revenue entry)
+LabRevenueSchema.statics.processRefund = async function (
+    labId: mongoose.Types.ObjectId,
+    amount: number, // Should be positive, will be subtracted
+    testBreakdown: Array<{ testName: string; price: number }>
+) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const revenueDoc = await this.findOne({ labId, date: today });
+    if (revenueDoc) {
+        testBreakdown.forEach((test) => {
+            const currentValue = revenueDoc.revenueByTest.get(test.testName) || 0;
+            revenueDoc.revenueByTest.set(test.testName, currentValue - test.price);
+        });
+        revenueDoc.totalRevenue -= amount;
+        // testCount and paymentCount logic for refunds: 
+        // Usually we don't decrement count of tests done, but maybe decrement successful paymentCount?
+        // Let's decrement paymentCount but keep testCount as the work was technically initiated/done.
+        revenueDoc.paymentCount -= 1;
+        await revenueDoc.save();
+        return revenueDoc;
+    } else {
+        const revenueByTest = new Map<string, number>();
+        testBreakdown.forEach((test) => {
+            revenueByTest.set(test.testName, -test.price);
+        });
+        return await this.create({
+            labId,
+            date: today,
+            totalRevenue: -amount,
+            testCount: 0, // No new tests, just refunding
+            paymentCount: -1,
             revenueByTest,
         });
     }

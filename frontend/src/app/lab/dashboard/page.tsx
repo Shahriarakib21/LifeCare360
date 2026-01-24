@@ -190,11 +190,15 @@ export default function LabDashboard() {
       return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">🔴 Critical</span>;
     }
 
-    if (status === 'completed') {
+    if (status === 'completed' || status === 'REPORT_UPLOADED') {
       return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">🟢 Completed</span>;
     }
 
-    return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">🟡 Pending</span>;
+    if (status === 'PAID') {
+      return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-100 text-cyan-700">📋 Paid & Ready</span>;
+    }
+
+    return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">🟡 {status.replace('_', ' ')}</span>;
   };
 
   const getPatientName = (test: RecentTest) => {

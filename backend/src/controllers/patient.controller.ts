@@ -1548,10 +1548,10 @@ export const getAllLabs = async (
           ? [location.city, location.state, location.country].filter(Boolean).join(', ')
           : null;
 
-        // Get lab name - use email if profile name is missing
-        const labName = profile.firstName && profile.lastName
-          ? `${profile.firstName} ${profile.lastName}`.trim()
-          : profile.firstName || lab.email?.split('@')[0] || 'Lab';
+        // Get lab name - use profile name exclusively if available
+        const labName = profile.firstName
+          ? `${profile.firstName} ${profile.lastName || ''}`.trim()
+          : lab.email?.split('@')[0] || 'Medical Laboratory';
 
         // Get all active prices for this lab
         const allPriceRecords = await TestPrice.find({

@@ -29,7 +29,7 @@ interface LabRequest {
       tests: string[];
       notes?: string;
       urgency: 'routine' | 'urgent' | 'stat';
-      status: 'pending' | 'completed' | 'ASSIGNED';
+      status: string;
       estimatedCost?: number;
       priceBreakdown?: { testName: string; price: number }[];
     };
@@ -236,8 +236,9 @@ export default function RequestsPage() {
                         <GlowButton
                           variant="cyan"
                           size="sm"
+                          disabled={request.data?.labTestRequest?.status !== 'PAID' && request.data?.labTestRequest?.status !== 'SAMPLE_COLLECTED' && request.data?.labTestRequest?.status !== 'IN_PROGRESS'}
                           onClick={() => router.push(`/lab/upload-report?requestId=${request._id}`)}
-                          className="text-[10px] tracking-widest px-4 font-black"
+                          className="text-[10px] tracking-widest px-4 font-black disabled:opacity-30"
                         >
                           <Upload className="w-3.5 h-3.5 mr-2" />
                           UPLINK

@@ -10,7 +10,8 @@ import {
     CreditCard,
     Download,
     FlaskConical,
-    Receipt
+    Receipt,
+    Activity
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -79,12 +80,19 @@ function OrdersContent() {
     const getStatusInfo = (status: string) => {
         switch (status?.toUpperCase()) {
             case 'PAID':
+                return { label: 'Paid & Ready', color: 'bg-cyan-100 text-cyan-700', icon: CheckCircle };
             case 'ASSIGNED':
-                return { label: 'Paid & Confirmed', color: 'bg-green-100 text-green-700', icon: CheckCircle };
+                return { label: 'Assigned', color: 'bg-blue-100 text-blue-700', icon: Clock };
+            case 'SAMPLE_COLLECTED':
+                return { label: 'Sample Collected', color: 'bg-indigo-100 text-indigo-700', icon: FlaskConical };
+            case 'IN_PROGRESS':
+                return { label: 'Testing...', color: 'bg-purple-100 text-purple-700', icon: Activity };
             case 'COMPLETED':
-                return { label: 'Results Ready', color: 'bg-indigo-100 text-indigo-700', icon: FileText };
+            case 'REPORT_UPLOADED':
+                return { label: 'Results Ready', color: 'bg-green-100 text-green-700', icon: FileText };
             case 'FAILED':
                 return { label: 'Payment Failed', color: 'bg-red-100 text-red-700', icon: AlertCircle };
+            case 'PAYMENT PENDING':
             case 'PENDING':
                 return { label: 'Pending Payment', color: 'bg-amber-100 text-amber-700', icon: Clock };
             default:
@@ -165,14 +173,14 @@ function OrdersContent() {
                                         </div>
 
                                         <div className="flex gap-3">
-                                            {order.data.labTestRequest.status === 'pending' ? (
+                                            {['PENDING', 'PAYMENT PENDING'].includes(order.data.labTestRequest.status?.toUpperCase()) ? (
                                                 <Button
                                                     onClick={() => handlePayNow(order)}
                                                     className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-3 rounded-2xl shadow-xl shadow-slate-950/20 active:scale-95 transition-all flex items-center gap-2"
                                                 >
                                                     <CreditCard className="w-5 h-5" /> Pay Now
                                                 </Button>
-                                            ) : order.data.labTestRequest.status === 'completed' ? (
+                                            ) : ['COMPLETED', 'REPORT_UPLOADED'].includes(order.data.labTestRequest.status?.toUpperCase()) ? (
                                                 <Button
                                                     onClick={() => window.location.href = '/patient/reports'}
                                                     className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-2xl shadow-xl shadow-indigo-500/20 active:scale-95 transition-all flex items-center gap-2"

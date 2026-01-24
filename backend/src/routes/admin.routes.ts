@@ -22,6 +22,7 @@ import {
     exportRevenueReport,
     getAdminLabRevenue,
     getAdminLabStats,
+    getGlobalLabRevenue,
 } from '../controllers/admin.controller';
 import {
     getAppointmentReport,
@@ -46,6 +47,7 @@ router.use(authenticate);
 router.use(authorize('admin'));
 
 // Dashboard & Analytics
+router.get('/analytics/global-lab-revenue', getGlobalLabRevenue);
 router.get('/stats', getDashboardStats);
 router.get('/analytics', getAnalytics);
 
@@ -78,7 +80,6 @@ router.get('/analytics/user-activity', getUserActivityReport);
 router.get('/analytics/role-stats', getRoleBasedStats);
 router.get('/analytics/lab-trends', getLabTestTrends);
 router.get('/analytics/activity-scatter', getActivityScatterData);
-
 // Settings Routes
 router.get('/settings', getSettings);
 router.patch('/settings', updateSettings);

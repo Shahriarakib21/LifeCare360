@@ -10,6 +10,7 @@ import { logger } from '../utils/logger';
 import { Op } from 'sequelize';
 import { getIO } from '../utils/socket';
 import {
+  createNotification,
   notifyPrescriptionCreated,
   notifyTestOrdered,
   notifyAppointmentBooked,
@@ -676,59 +677,49 @@ export const requestLabTest = async (
           tests: validTests,
           notes,
           urgency: urgency || 'routine',
-          status: 'REQUESTED',
+          status: 'Payment Pending',
           requestedAt: new Date(),
           labId: labId || undefined,
         },
       },
-      tags: ['lab-test-request', 'REQUESTED'],
+      tags: ['lab-test-request', 'Payment Pending'],
     });
 
     logger.info(`Lab test requested by doctor ${userId} for patient ${patientId} with tests: ${JSON.stringify(validTests)}`);
 
-    logger.info(`Lab test requested by doctor ${userId} for patient ${patientId}`);
-
-    // Notify lab staff
+    // Notify patient
     try {
       if (getIO()) {
         const doctorUser = await User.findById(userId);
         const doctorName = `${doctorUser?.profile?.firstName || ''} ${doctorUser?.profile?.lastName || ''}`.trim() || doctorUser?.email || 'Unknown Doctor';
 
-        // Populate patient user to get name
-        const patientWithUser = await Patient.findById(patientId).populate('userId');
-        const pUser = patientWithUser?.userId as any;
-        const patientName = pUser ? `${pUser.profile?.firstName || ''} ${pUser.profile?.lastName || ''}`.trim() || pUser.email : 'Patient';
+        const patientUser = await User.findById(patient.userId);
+        if (patientUser) {
+          // Create persistent notification in database
+          const notification = await createNotification(
+            patientUser._id,
+            'lab_order',
+            'Lab Test Requested',
+            `Dr. ${doctorName} has requested lab tests. Please review and complete payment to proceed.`,
+            { requestId: ehr._id.toString(), doctorName }
+          );
 
-        const testNames = validTests.map((t: any) => typeof t === 'string' ? t : t.name);
+          // Send real-time notification
+          getIO().to(patientUser._id.toString()).emit('notification', {
+            _id: notification._id,
+            title: notification.title,
+            message: notification.message,
+            type: notification.type,
+            data: notification.data,
+            createdAt: notification.createdAt,
+            read: false
+          });
 
-        let labUsers = [];
-        if (labId) {
-          // Notify specific lab
-          const specificLab = await User.findById(labId);
-          if (specificLab && specificLab.role === 'lab') {
-            labUsers.push(specificLab);
-          }
-        } else {
-          // Notify all labs
-          labUsers = await User.find({ role: 'lab' });
+          logger.info(`Patient ${patientUser._id} notified about new lab test request`);
         }
-
-        // Notify each lab user
-        for (const labUser of labUsers) {
-          notifyTestOrdered(
-            getIO(),
-            labUser._id.toString(),
-            doctorName,
-            patientName,
-            testNames,
-            ehr._id.toString(),
-            urgency
-          ).catch(err => logger.error(`Failed to notify lab user ${labUser._id}:`, err));
-        }
-        logger.info(`Notified ${labUsers.length} lab users about new test request`);
       }
-    } catch (notifyError) {
-      logger.error('Failed to send lab notifications:', notifyError);
+    } catch (notifError) {
+      logger.error('Failed to notify patient about lab test request:', notifError);
     }
 
     res.status(201).json({

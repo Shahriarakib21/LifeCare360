@@ -62,6 +62,21 @@ export default function DoctorsPage() {
         }
     };
 
+    const handleVerifyUser = async (doctor: any) => {
+        if (!confirm(`Are you sure you want to manually verify ${doctor.email}?`)) return;
+        setActionLoading(doctor._id);
+        try {
+            await api.patch(`/api/admin/users/${doctor._id}/verify`);
+            toast.success(`User verified successfully`);
+            fetchDoctors();
+        } catch (error) {
+            toast.error('Failed to verify user');
+            console.error(error);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     const confirmDelete = async () => {
         if (!selectedDoctor) return;
         setActionLoading(selectedDoctor._id);
@@ -210,6 +225,16 @@ export default function DoctorsPage() {
                                             </td>
                                             <td className="py-3 px-4 text-right">
                                                 <div className="flex justify-end gap-2">
+                                                    {!doctor.isEmailVerified && (
+                                                        <button
+                                                            onClick={() => handleVerifyUser(doctor)}
+                                                            className="p-1.5 text-secondary-400 hover:text-success-600 hover:bg-success-50 rounded-lg transition-colors"
+                                                            title="Verify User Manually"
+                                                            disabled={actionLoading === doctor._id}
+                                                        >
+                                                            <UserCheck className="w-4 h-4" />
+                                                        </button>
+                                                    )}
                                                     <button
                                                         onClick={() => {
                                                             setSelectedDoctor(doctor);
@@ -218,7 +243,7 @@ export default function DoctorsPage() {
                                                         className="p-1.5 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                                                         title="Reset Password"
                                                     >
-                                                        <UserCheck className="w-4 h-4" />
+                                                        <Shield className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleToggleStatus(doctor)}

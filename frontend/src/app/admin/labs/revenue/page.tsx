@@ -46,10 +46,20 @@ export default function AdminGlobalLabRevenuePage() {
         fetchGlobalRevenue();
     }, []);
 
-    if (loading) return <LoadingSpinner fullScreen text="Aggregating Global Network Intelligence..." />;
-    if (!data) return null;
+    if (loading) return <LoadingSpinner fullScreen text="Aggregating Network Revenue Intelligence..." />;
 
-    const filteredLabs = data.labBreakdown.filter(lab =>
+    if (!data) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+                <Activity className="w-16 h-16 text-slate-200" />
+                <h3 className="text-xl font-bold text-slate-900">No Revenue Data Found</h3>
+                <p className="text-slate-500">Global laboratory network intelligence is currently unavailable or empty.</p>
+                <Button onClick={() => window.location.reload()} variant="outline">Retry Synchronizing</Button>
+            </div>
+        );
+    }
+
+    const filteredLabs = (data.labBreakdown || []).filter(lab =>
         lab.labName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -79,10 +89,10 @@ export default function AdminGlobalLabRevenuePage() {
             {/* Global KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: "Aggregate Revenue", value: data.totalRevenue, icon: DollarSign, color: "emerald", prefix: "৳" },
-                    { label: "Gross Test Volume", value: data.totalTests, icon: FlaskConical, color: "blue", prefix: "" },
-                    { label: "Active Laboratory Units", value: data.labCount, icon: Building2, color: "indigo", prefix: "" },
-                    { label: "Network Growth", value: "+14.2%", icon: TrendingUp, color: "cyan", prefix: "" }
+                    { label: "Aggregate Revenue", value: data.totalRevenue || 0, icon: DollarSign, color: "emerald", prefix: "৳" },
+                    { label: "Gross Test Volume", value: data.totalTests || 0, icon: FlaskConical, color: "blue", prefix: "" },
+                    { label: "Active Laboratory Units", value: data.labCount || 0, icon: Building2, color: "indigo", prefix: "" },
+                    { label: "Network Growth", value: data.totalRevenue > 0 ? "+14.2%" : "N/A", icon: TrendingUp, color: "cyan", prefix: "" }
                 ].map((stat, i) => (
                     <div key={i} className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-100 group transition-all hover:bg-slate-900 group">
                         <div className="flex items-center justify-between mb-6">
@@ -93,7 +103,7 @@ export default function AdminGlobalLabRevenuePage() {
                         </div>
                         <h4 className="text-[10px] font-black text-slate-400 group-hover:text-slate-500 uppercase tracking-widest mb-1">{stat.label}</h4>
                         <span className="text-3xl font-black text-slate-900 group-hover:text-white transition-all">
-                            {stat.prefix}{stat.value.toLocaleString()}
+                            {stat.prefix}{typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
                         </span>
                     </div>
                 ))}
@@ -115,7 +125,7 @@ export default function AdminGlobalLabRevenuePage() {
 
                     <div className="h-[400px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={data.dailyTrend}>
+                            <AreaChart data={data.dailyTrend || []}>
                                 <defs>
                                     <linearGradient id="colorGlobal" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1} />
@@ -158,7 +168,7 @@ export default function AdminGlobalLabRevenuePage() {
                         <ResponsiveContainer width="100%" height="100%">
                             <RePieChart>
                                 <Pie
-                                    data={data.labBreakdown.slice(0, 5)}
+                                    data={(data.labBreakdown || []).slice(0, 5)}
                                     cx="50%"
                                     cy="50%"
                                     innerRadius={70}

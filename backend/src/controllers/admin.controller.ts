@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import User from '../models/mongodb/User.model';
 import Appointment from '../models/postgres/Appointment.model';
+import Doctor from '../models/postgres/Doctor.model';
 import Order from '../models/postgres/Order.model';
 import Patient from '../models/mongodb/Patient.model';
 import EHR from '../models/mongodb/EHR.model';
@@ -13,6 +14,7 @@ import { Op } from 'sequelize';
 import { Parser } from 'json2csv';
 import mongoose from 'mongoose';
 import LabRevenue from '../models/mongodb/LabRevenue.model';
+import { logger } from '../utils/logger';
 
 // Get Dashboard Stats
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
@@ -170,9 +172,65 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
             throw new AppError('User not found', 404);
         }
 
+        const stats: any = {};
+
+        if (user.role === 'patient') {
+            const [appointments, orders, labTests] = await Promise.all([
+                Appointment.count({ where: { patientId: id } }),
+                Order.count({ where: { patientId: id } }),
+                EHR.countDocuments({ patientId: id, type: 'lab-test-request' })
+            ]);
+            stats.appointments = appointments;
+            stats.orders = orders;
+            stats.labTests = labTests;
+        } else if (user.role === 'doctor') {
+            const doctorProfile = await Doctor.findOne({ where: { userId: id } });
+            if (doctorProfile) {
+                const [appointments, prescriptions, patients] = await Promise.all([
+                    Appointment.count({ where: { doctorId: doctorProfile.id } }),
+                    EHR.countDocuments({ recordedBy: id, type: 'prescription' }),
+                    Appointment.count({
+                        where: { doctorId: doctorProfile.id },
+                        distinct: true,
+                        col: 'patientId'
+                    })
+                ]);
+                stats.appointments = appointments;
+                stats.prescriptions = prescriptions;
+                stats.patients = patients;
+            }
+        } else if (user.role === 'lab') {
+            const [testRequests, completedTests, revenue] = await Promise.all([
+                EHR.countDocuments({ 'data.labTestRequest.labId': id }),
+                EHR.countDocuments({ 'data.labTestRequest.labId': id, 'data.labTestRequest.status': 'REPORT_UPLOADED' }),
+                RevenueTransaction.aggregate([
+                    { $match: { providerUserId: new mongoose.Types.ObjectId(id), type: 'lab' } },
+                    { $group: { _id: null, total: { $sum: "$amount" } } }
+                ])
+            ]);
+            stats.testRequests = testRequests;
+            stats.completedTests = completedTests;
+            stats.revenue = revenue[0]?.total || 0;
+        } else if (user.role === 'pharmacy') {
+            const [orders, completedOrders, revenue] = await Promise.all([
+                Order.count({ where: { pharmacyUserId: id } }),
+                Order.count({ where: { pharmacyUserId: id, status: 'delivered' } }),
+                RevenueTransaction.aggregate([
+                    { $match: { providerUserId: new mongoose.Types.ObjectId(id), type: 'pharmacy' } },
+                    { $group: { _id: null, total: { $sum: "$amount" } } }
+                ])
+            ]);
+            stats.orders = orders;
+            stats.completedOrders = completedOrders;
+            stats.revenue = revenue[0]?.total || 0;
+        }
+
         res.status(200).json({
             success: true,
-            data: user
+            data: {
+                ...user.toObject(),
+                stats
+            }
         });
     } catch (error) {
         next(error);
@@ -307,6 +365,55 @@ export const toggleUserStatus = async (req: Request, res: Response, next: NextFu
             success: true,
             message: `User ${user.isActive ? 'activated' : 'deactivated'} successfully`,
             data: { isActive: user.isActive }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Verify User (Manual Verification)
+export const verifyUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id);
+
+        if (!user) {
+            throw new AppError('User not found', 404);
+        }
+
+        if (user.isEmailVerified) {
+            return res.status(200).json({
+                success: true,
+                message: 'User is already verified',
+                data: { isEmailVerified: user.isEmailVerified }
+            });
+        }
+
+        user.isEmailVerified = true;
+        await user.save();
+
+        // If user is a doctor, also verify their postgres profile
+        if (user.role === 'doctor') {
+            const doctor = await Doctor.findOne({ where: { userId: user._id.toString() } });
+            if (doctor) {
+                doctor.isVerified = true;
+                await doctor.save();
+            }
+        }
+
+        // Log the action
+        await AuditLog.create({
+            adminId: (req as any).user.id,
+            action: 'VERIFY_USER',
+            targetUserId: user._id,
+            details: { email: user.email, role: user.role, manual: true },
+            ipAddress: req.ip
+        });
+
+        res.status(200).json({
+            success: true,
+            message: `User ${user.email} verified successfully`,
+            data: { isEmailVerified: true }
         });
     } catch (error) {
         next(error);
@@ -907,6 +1014,7 @@ export const getAdminLabStats = async (req: Request, res: Response, next: NextFu
 export const getGlobalLabRevenue = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { startDate, endDate } = req.query;
+        logger.info(`Admin: Fetching Global Lab Revenue. Period: ${startDate || 'all'} to ${endDate || 'now'}`);
 
         const match: any = { type: 'lab' };
         if (startDate || endDate) {
@@ -973,11 +1081,16 @@ export const getGlobalLabRevenue = async (req: Request, res: Response, next: Nex
                     as: "labInfo"
                 }
             },
-            { $unwind: "$labInfo" },
+            { $unwind: { path: "$labInfo", preserveNullAndEmptyArrays: true } },
             {
                 $project: {
                     labId: "$_id",
-                    labName: { $concat: ["$labInfo.profile.firstName", " ", "$labInfo.profile.lastName"] },
+                    labName: {
+                        $ifNull: [
+                            { $concat: ["$labInfo.profile.firstName", " ", { $ifNull: ["$labInfo.profile.lastName", ""] }] },
+                            "Unknown Laboratory"
+                        ]
+                    },
                     revenue: 1,
                     tests: 1
                 }
@@ -985,17 +1098,20 @@ export const getGlobalLabRevenue = async (req: Request, res: Response, next: Nex
             { $sort: { revenue: -1 } }
         ]);
 
+        logger.info(`Admin: Global Lab Revenue fetched successfully. Total labs: ${totals.labCount?.length || 0}`);
+
         res.status(200).json({
             success: true,
             data: {
-                totalRevenue: totals.totalRevenue,
-                totalTests: totals.totalTests,
-                labCount: totals.labCount.length,
-                dailyTrend,
-                labBreakdown
+                totalRevenue: totals.totalRevenue || 0,
+                totalTests: totals.totalTests || 0,
+                labCount: totals.labCount?.length || 0,
+                dailyTrend: dailyTrend || [],
+                labBreakdown: labBreakdown || []
             }
         });
     } catch (error) {
+        logger.error('Error in getGlobalLabRevenue:', error);
         next(error);
     }
 };

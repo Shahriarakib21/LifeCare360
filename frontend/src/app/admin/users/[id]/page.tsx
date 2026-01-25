@@ -12,8 +12,11 @@ import {
     Activity,
     Pill,
     FileText,
-    ArrowLeft
+    ArrowLeft,
+    History,
+    LayoutDashboard
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import api, { handleApiError } from '@/lib/api';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -60,29 +63,41 @@ export default function UserDetailsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <Button
                     variant="ghost"
-                    onClick={() => router.back()}
+                    onClick={() => router.push('/admin/users')}
                     leftIcon={<ArrowLeft className="w-4 h-4" />}
+                    className="hover:bg-primary-50 text-primary-600 hover:text-primary-700 w-fit rounded-xl font-bold"
                 >
                     Back to Users
                 </Button>
-                <div className="flex gap-2">
-                    <Button
-                        variant={activeTab === 'overview' ? 'primary' : 'ghost'}
+
+                <div className="flex items-center bg-secondary-100 p-1.5 rounded-[1.25rem] w-fit shadow-inner">
+                    <button
                         onClick={() => setActiveTab('overview')}
-                        size="sm"
+                        className={cn(
+                            "flex items-center gap-2 px-5 py-2 rounded-xl transition-all duration-300 font-bold text-sm",
+                            activeTab === 'overview'
+                                ? "bg-white text-primary-600 shadow-sm scale-100"
+                                : "text-secondary-500 hover:text-secondary-700 hover:bg-secondary-200/50 scale-95"
+                        )}
                     >
+                        <LayoutDashboard className="w-4 h-4" />
                         Overview
-                    </Button>
-                    <Button
-                        variant={activeTab === 'history' ? 'primary' : 'ghost'}
+                    </button>
+                    <button
                         onClick={() => setActiveTab('history')}
-                        size="sm"
+                        className={cn(
+                            "flex items-center gap-2 px-5 py-2 rounded-xl transition-all duration-300 font-bold text-sm",
+                            activeTab === 'history'
+                                ? "bg-white text-primary-600 shadow-sm scale-100"
+                                : "text-secondary-500 hover:text-secondary-700 hover:bg-secondary-200/50 scale-95"
+                        )}
                     >
-                        Activity History
-                    </Button>
+                        <History className="w-4 h-4" />
+                        Activity Logs
+                    </button>
                 </div>
             </div>
 
@@ -109,7 +124,7 @@ export default function UserDetailsPage() {
                             <Mail className="w-4 h-4" /> {user.email}
                         </p>
                         <div className="flex flex-wrap justify-center md:justify-start gap-2 mt-3">
-                            <Badge variant="info" className="capitalize">
+                            <Badge variant="primary" className="capitalize">
                                 <Shield className="w-3 h-3 mr-1" />
                                 {user.role}
                             </Badge>
@@ -124,7 +139,11 @@ export default function UserDetailsPage() {
             {activeTab === 'overview' ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Contact Info */}
-                    <Card title="Contact Information" icon={<User className="w-5 h-5 text-primary-600" />}>
+                    <Card padding="lg">
+                        <div className="flex items-center gap-2 mb-6">
+                            <User className="w-5 h-5 text-primary-600" />
+                            <h3 className="text-lg font-bold text-secondary-900">Contact Information</h3>
+                        </div>
                         <div className="space-y-4">
                             <div className="flex items-start gap-3">
                                 <Phone className="w-4 h-4 text-secondary-400 mt-1" />
@@ -165,30 +184,92 @@ export default function UserDetailsPage() {
 
                     {/* Stats */}
                     <div className="md:col-span-2 space-y-6">
-                        <Card title="Platform Engagement">
+                        <Card padding="lg">
+                            <h3 className="text-lg font-bold text-secondary-900 mb-6">System Performance & Engagement</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div className="p-4 bg-primary-50 rounded-xl border border-primary-100 text-center">
-                                    <Activity className="w-6 h-6 text-primary-600 mx-auto mb-2" />
-                                    <p className="text-2xl font-bold text-primary-900">{user.stats?.appointments || 0}</p>
-                                    <p className="text-xs text-primary-600 font-medium uppercase tracking-wider">Appointments</p>
-                                </div>
-                                <div className="p-4 bg-orange-50 rounded-xl border border-orange-100 text-center">
-                                    <Pill className="w-6 h-6 text-orange-600 mx-auto mb-2" />
-                                    <p className="text-2xl font-bold text-orange-900">{user.stats?.orders || 0}</p>
-                                    <p className="text-xs text-orange-600 font-medium uppercase tracking-wider">Orders</p>
-                                </div>
-                                <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 text-center">
-                                    <FileText className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                                    <p className="text-2xl font-bold text-blue-900">{user.stats?.labTests || 0}</p>
-                                    <p className="text-xs text-blue-600 font-medium uppercase tracking-wider">Lab Tests</p>
-                                </div>
+                                {user.role === 'patient' && (
+                                    <>
+                                        <div className="p-4 bg-primary-50 rounded-xl border border-primary-100 text-center">
+                                            <Activity className="w-6 h-6 text-primary-600 mx-auto mb-2" />
+                                            <p className="text-2xl font-bold text-primary-900">{user.stats?.appointments || 0}</p>
+                                            <p className="text-xs text-primary-600 font-medium uppercase tracking-wider">Appointments</p>
+                                        </div>
+                                        <div className="p-4 bg-orange-50 rounded-xl border border-orange-100 text-center">
+                                            <Pill className="w-6 h-6 text-orange-600 mx-auto mb-2" />
+                                            <p className="text-2xl font-bold text-orange-900">{user.stats?.orders || 0}</p>
+                                            <p className="text-xs text-orange-600 font-medium uppercase tracking-wider">Orders</p>
+                                        </div>
+                                        <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 text-center">
+                                            <FileText className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                                            <p className="text-2xl font-bold text-blue-900">{user.stats?.labTests || 0}</p>
+                                            <p className="text-xs text-blue-600 font-medium uppercase tracking-wider">Lab Tests</p>
+                                        </div>
+                                    </>
+                                )}
+                                {user.role === 'doctor' && (
+                                    <>
+                                        <div className="p-4 bg-primary-50 rounded-xl border border-primary-100 text-center">
+                                            <Activity className="w-6 h-6 text-primary-600 mx-auto mb-2" />
+                                            <p className="text-2xl font-bold text-primary-900">{user.stats?.appointments || 0}</p>
+                                            <p className="text-xs text-primary-600 font-medium uppercase tracking-wider">Appointments</p>
+                                        </div>
+                                        <div className="p-4 bg-green-50 rounded-xl border border-green-100 text-center">
+                                            <FileText className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                                            <p className="text-2xl font-bold text-green-900">{user.stats?.prescriptions || 0}</p>
+                                            <p className="text-xs text-green-600 font-medium uppercase tracking-wider">Prescriptions</p>
+                                        </div>
+                                        <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 text-center">
+                                            <User className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                                            <p className="text-2xl font-bold text-blue-900">{user.stats?.patients || 0}</p>
+                                            <p className="text-xs text-blue-600 font-medium uppercase tracking-wider">Total Patients</p>
+                                        </div>
+                                    </>
+                                )}
+                                {user.role === 'lab' && (
+                                    <>
+                                        <div className="p-4 bg-primary-50 rounded-xl border border-primary-100 text-center">
+                                            <FileText className="w-6 h-6 text-primary-600 mx-auto mb-2" />
+                                            <p className="text-2xl font-bold text-primary-900">{user.stats?.testRequests || 0}</p>
+                                            <p className="text-xs text-primary-600 font-medium uppercase tracking-wider">Test Requests</p>
+                                        </div>
+                                        <div className="p-4 bg-green-50 rounded-xl border border-green-100 text-center">
+                                            <Activity className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                                            <p className="text-2xl font-bold text-green-900">{user.stats?.completedTests || 0}</p>
+                                            <p className="text-xs text-green-600 font-medium uppercase tracking-wider">Completed</p>
+                                        </div>
+                                        <div className="p-4 bg-orange-50 rounded-xl border border-orange-100 text-center">
+                                            <div className="text-xl font-bold text-orange-900 mb-1">৳{user.stats?.revenue?.toLocaleString() || 0}</div>
+                                            <p className="text-xs text-orange-600 font-medium uppercase tracking-wider">Lab Revenue</p>
+                                        </div>
+                                    </>
+                                )}
+                                {user.role === 'pharmacy' && (
+                                    <>
+                                        <div className="p-4 bg-primary-50 rounded-xl border border-primary-100 text-center">
+                                            <Pill className="w-6 h-6 text-primary-600 mx-auto mb-2" />
+                                            <p className="text-2xl font-bold text-primary-900">{user.stats?.orders || 0}</p>
+                                            <p className="text-xs text-primary-600 font-medium uppercase tracking-wider">Total Orders</p>
+                                        </div>
+                                        <div className="p-4 bg-green-50 rounded-xl border border-green-100 text-center">
+                                            <Activity className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                                            <p className="text-2xl font-bold text-green-900">{user.stats?.completedOrders || 0}</p>
+                                            <p className="text-xs text-green-600 font-medium uppercase tracking-wider">Fulfilled</p>
+                                        </div>
+                                        <div className="p-4 bg-orange-50 rounded-xl border border-orange-100 text-center">
+                                            <div className="text-xl font-bold text-orange-900 mb-1">৳{user.stats?.revenue?.toLocaleString() || 0}</div>
+                                            <p className="text-xs text-orange-600 font-medium uppercase tracking-wider">Pharmacy Sales</p>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </Card>
 
                         {/* Recent Activity Mini-List */}
-                        <Card title="Recent Activity" headerAction={
-                            <Button variant="ghost" size="sm" onClick={() => setActiveTab('history')}>View All</Button>
-                        }>
+                        <Card padding="lg">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-lg font-bold text-secondary-900">Recent Activity</h3>
+                                <Button variant="ghost" size="sm" onClick={() => setActiveTab('history')}>View All</Button>
+                            </div>
                             <div className="space-y-4">
                                 {history.length === 0 ? (
                                     <p className="text-center py-4 text-secondary-500 italic">No recent activity found</p>
@@ -210,7 +291,8 @@ export default function UserDetailsPage() {
                     </div>
                 </div>
             ) : (
-                <Card title="Comprehensive Activity History">
+                <Card padding="lg">
+                    <h3 className="text-xl font-bold text-secondary-900 mb-8">Comprehensive Activity History</h3>
                     <div className="space-y-6">
                         {history.length === 0 ? (
                             <div className="text-center py-12">
@@ -240,7 +322,5 @@ export default function UserDetailsPage() {
                 </Card>
             )}
         </div>
-    );
-}
     );
 }

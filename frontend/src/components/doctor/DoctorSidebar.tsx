@@ -100,7 +100,7 @@ export default function DoctorSidebar() {
     <div className="h-screen w-64 bg-white border-r border-secondary-200 flex flex-col">
       {/* Logo/Brand Section */}
       <div className="p-6 border-b border-secondary-200 flex items-center justify-center">
-        <Logo size="lg" />
+        <Logo size="sidebar" />
       </div>
 
       {/* User Info Section */}

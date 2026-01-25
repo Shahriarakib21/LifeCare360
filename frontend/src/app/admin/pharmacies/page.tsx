@@ -62,6 +62,21 @@ export default function PharmaciesPage() {
         }
     };
 
+    const handleVerifyUser = async (pharmacy: any) => {
+        if (!confirm(`Are you sure you want to manually verify ${pharmacy.email}?`)) return;
+        setActionLoading(pharmacy._id);
+        try {
+            await api.patch(`/api/admin/users/${pharmacy._id}/verify`);
+            toast.success(`User verified successfully`);
+            fetchPharmacies();
+        } catch (error) {
+            toast.error('Failed to verify user');
+            console.error(error);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     const confirmDelete = async () => {
         if (!selectedPharmacy) return;
         setActionLoading(selectedPharmacy._id);
@@ -207,6 +222,16 @@ export default function PharmaciesPage() {
                                             </td>
                                             <td className="py-3 px-4 text-right">
                                                 <div className="flex justify-end gap-2">
+                                                    {!pharmacy.isEmailVerified && (
+                                                        <button
+                                                            onClick={() => handleVerifyUser(pharmacy)}
+                                                            className="p-1.5 text-secondary-400 hover:text-success-600 hover:bg-success-50 rounded-lg transition-colors"
+                                                            title="Verify User Manually"
+                                                            disabled={actionLoading === pharmacy._id}
+                                                        >
+                                                            <UserCheck className="w-4 h-4" />
+                                                        </button>
+                                                    )}
                                                     <button
                                                         onClick={() => {
                                                             setSelectedPharmacy(pharmacy);

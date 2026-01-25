@@ -46,7 +46,7 @@ export default function Sidebar() {
     return (
         <aside className="w-64 bg-white border-r border-slate-100 hidden md:flex flex-col h-full font-sans shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-30">
             <div className="p-6 border-b border-slate-50 flex items-center justify-center">
-                <Logo size="lg" />
+                <Logo size="sidebar" />
             </div>
 
             <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">

@@ -3,15 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, User, Phone, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Phone, Eye, EyeOff, CheckCircle2, ShieldCheck, Stethoscope, Landmark, FlaskConical } from 'lucide-react';
 import Logo from '@/components/common/Logo';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Card from '@/components/ui/Card';
 import api, { handleApiError } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
+
+const roles = [
+  { id: 'patient', label: 'Patient', icon: User, description: 'Access medical history and book appointments' },
+  { id: 'doctor', label: 'Doctor', icon: Stethoscope, description: 'Manage patients and prescriptions' },
+  { id: 'pharmacy', label: 'Pharmacy', icon: Landmark, description: 'Process orders and refills' },
+  { id: 'lab', label: 'Laboratory', icon: FlaskConical, description: 'Manage test requests and reports' }
+];
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -29,56 +34,25 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Redirect authenticated users to their dashboard
   useEffect(() => {
-    // Initialize auth store from localStorage
     if (typeof window !== 'undefined') {
       initialize();
-
-      // Check authentication after a short delay to allow store to initialize
-      const timer = setTimeout(() => {
-        if (isAuthenticated && user) {
-          const dashboardPath = `/${user.role}/dashboard`;
-          router.push(dashboardPath);
-        }
-      }, 100);
-
-      return () => clearTimeout(timer);
+      if (isAuthenticated && user) {
+        router.push(`/${user.role}/dashboard`);
+      }
     }
   }, [isAuthenticated, user, router, initialize]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-
-    if (!formData.firstName) {
-      newErrors.firstName = 'First name is required';
-    }
-
-    if (!formData.lastName) {
-      newErrors.lastName = 'Last name is required';
-    }
-
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Password must contain uppercase, lowercase, and number';
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (!formData.phone) {
-      newErrors.phone = 'Phone number is required';
-    }
+    if (!formData.firstName) newErrors.firstName = 'Required';
+    if (!formData.lastName) newErrors.lastName = 'Required';
+    if (!formData.email) newErrors.email = 'Required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email';
+    if (!formData.password) newErrors.password = 'Required';
+    else if (formData.password.length < 8) newErrors.password = 'Min 8 chars';
+    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Mismatch';
+    if (!formData.phone) newErrors.phone = 'Required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -86,196 +60,218 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validate()) return;
-
     setLoading(true);
 
     try {
       const { confirmPassword, ...registerData } = formData;
       const response = await api.post('/api/auth/register', registerData);
-      const { token, user } = response.data.data;
+      const { token, user: newUser } = response.data.data;
 
-      // Use auth store to set auth (which also updates localStorage)
-      const { useAuthStore } = await import('@/store/authStore');
-      useAuthStore.getState().setAuth(user, token);
-
+      useAuthStore.getState().setAuth(newUser, token);
       toast.success('Account created successfully!');
-
-      // Redirect to dashboard
-      const dashboardPath = `/${user.role}/dashboard`;
-      router.push(dashboardPath);
+      router.push(`/${newUser.role}/dashboard`);
     } catch (error: any) {
-      const errorMessage = handleApiError(error);
-      toast.error(errorMessage);
+      toast.error(handleApiError(error));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative">
-      {/* Background Image */}
-      <div
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/auth-bg.jpg)' }}
-      >
-        <div className="absolute inset-0 bg-black/50"></div>
-      </div>
-
-      <div className="relative z-10 flex flex-col min-h-screen">
-        {/* Centered Logo */}
-        <div className="flex justify-center items-center pt-8 pb-4">
-          <Logo showText={true} textClassName="text-white" />
+    <div className="min-h-screen grid lg:grid-cols-2">
+      {/* Visual Identity Section */}
+      <div className="hidden lg:flex flex-col justify-between p-12 bg-primary-900 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-primary-400 blur-[100px]" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-teal-400 blur-[100px]" />
         </div>
 
-        <main className="flex-1 flex items-center justify-center py-12 px-4">
-          <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border-white/20" padding="lg">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">
-                Create Account
-              </h1>
-              <p className="text-white/90">
-                Join HealthLife to manage your health
-              </p>
+        <div className="relative z-10">
+          <Logo size="xl" variant="horizontal" theme="dark" />
+        </div>
+
+        <div className="relative z-10 space-y-12">
+          <h2 className="text-5xl font-bold text-white leading-tight">
+            Empowering <span className="text-primary-300">Healthcare</span> <br />
+            Through Connectivity.
+          </h2>
+
+          <div className="space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-primary-500/20 p-2 rounded-lg"><ShieldCheck className="text-primary-300 w-6 h-6" /></div>
+              <div>
+                <h4 className="text-white font-semibold">Secure Data Storage</h4>
+                <p className="text-primary-100/60 text-sm">Your medical records are encrypted and compliant.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="bg-primary-500/20 p-2 rounded-lg"><CheckCircle2 className="text-primary-300 w-6 h-6" /></div>
+              <div>
+                <h4 className="text-white font-semibold">Instant Connectivity</h4>
+                <p className="text-primary-100/60 text-sm">Real-time collaboration between all health stakeholders.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-10 text-primary-300 text-sm italic">
+          © 2026 LifeCare360 Ecosystem. Trusted by millions.
+        </div>
+      </div>
+
+      {/* Form Section */}
+      <div className="flex flex-col items-center justify-center p-6 bg-white sm:p-12 lg:bg-slate-50 overflow-y-auto">
+        <div className="w-full max-w-2xl space-y-8 animate-fade-in py-8">
+          <div className="text-center space-y-2">
+            <div className="mb-6 flex justify-center transform hover:scale-105 transition-transform duration-300">
+              <Logo size="auth" variant="square" theme="light" />
+            </div>
+            <h1 className="text-4xl font-extrabold text-slate-900">Create your account</h1>
+            <p className="text-slate-500">Join the universal health ecosystem today.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Role Selection */}
+            <div className="space-y-4">
+              <label className="text-sm font-semibold text-slate-700 uppercase tracking-wider">I am a...</label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {roles.map((role) => {
+                  const Icon = role.icon;
+                  const isSelected = formData.role === role.id;
+                  return (
+                    <button
+                      key={role.id}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, role: role.id })}
+                      className={`flex flex-col items-center p-4 rounded-2xl border-2 transition-all duration-300 gap-2 ${isSelected
+                        ? 'border-primary-600 bg-primary-50 shadow-md ring-1 ring-primary-600'
+                        : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'
+                        }`}
+                    >
+                      <div className={`p-2 rounded-xl ${isSelected ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <span className={`text-sm font-bold ${isSelected ? 'text-primary-900' : 'text-slate-600'}`}>{role.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="First Name"
-                  name="firstName"
-                  placeholder="John"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  error={errors.firstName}
-                  leftIcon={<User className="w-5 h-5" />}
-                  required
-                />
-                <Input
-                  label="Last Name"
-                  name="lastName"
-                  placeholder="Doe"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                  error={errors.lastName}
-                  required
-                />
-              </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <Input
+                label="First Name"
+                name="firstName"
+                placeholder="John"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                error={errors.firstName}
+                leftIcon={<User className="w-5 h-5" />}
+                className="rounded-2xl border-slate-200 focus:border-primary-500 transition-all duration-200"
+                required
+              />
+              <Input
+                label="Last Name"
+                name="lastName"
+                placeholder="Doe"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                error={errors.lastName}
+                className="rounded-2xl border-slate-200 focus:border-primary-500 transition-all duration-200"
+                required
+              />
+            </div>
 
+            <div className="grid md:grid-cols-2 gap-6">
               <Input
                 label="Email"
                 name="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="john@example.com"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 error={errors.email}
                 leftIcon={<Mail className="w-5 h-5" />}
+                className="rounded-2xl border-slate-200 focus:border-primary-500 transition-all duration-200"
                 required
               />
-
               <Input
                 label="Phone"
                 name="phone"
                 type="tel"
-                placeholder="+1234567890"
+                placeholder="+123..."
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 error={errors.phone}
                 leftIcon={<Phone className="w-5 h-5" />}
+                className="rounded-2xl border-slate-200 focus:border-primary-500 transition-all duration-200"
                 required
               />
+            </div>
 
-              <Select
-                label="Role"
-                name="role"
-                options={[
-                  { value: 'patient', label: 'Patient' },
-                  { value: 'doctor', label: 'Doctor' },
-                  { value: 'pharmacy', label: 'Pharmacy' },
-                  { value: 'lab', label: 'Laboratory' }
-                ]}
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                required
-              />
-
+            <div className="grid md:grid-cols-2 gap-6">
               <Input
                 label="Password"
                 name="password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Create a strong password"
+                placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 error={errors.password}
                 leftIcon={<Lock className="w-5 h-5" />}
-                rightIcon={
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="text-white/70 hover:text-white"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                }
+                className="rounded-2xl border-slate-200 focus:border-primary-500 transition-all duration-200"
                 required
               />
-
               <Input
                 label="Confirm Password"
                 name="confirmPassword"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Confirm your password"
+                placeholder="••••••••"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 error={errors.confirmPassword}
-                leftIcon={<Lock className="w-5 h-5" />}
+                leftIcon={<ShieldCheck className="w-5 h-5" />}
+                rightIcon={
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-slate-400 hover:text-primary-500 focus:outline-none">
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                }
+                className="rounded-2xl border-slate-200 focus:border-primary-500 transition-all duration-200"
                 required
               />
-
-              <div className="flex items-start">
-                <input
-                  type="checkbox"
-                  id="terms-checkbox"
-                  name="terms"
-                  className="mt-1 w-4 h-4 text-primary-600 border-white/30 rounded focus:ring-primary-500 bg-white/20"
-                  required
-                  aria-required="true"
-                />
-                <label htmlFor="terms-checkbox" className="ml-2 text-sm text-white/90">
-                  I agree to the{' '}
-                  <Link href="/terms" className="text-white hover:text-white/80 underline">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link href="/privacy" className="text-white hover:text-white/80 underline">
-                    Privacy Policy
-                  </Link>
-                </label>
-              </div>
-
-              <Button
-                type="submit"
-                fullWidth
-                size="lg"
-                isLoading={loading}
-              >
-                Create Account
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-white/90">
-                Already have an account?{' '}
-                <Link href="/auth/login" className="text-white hover:text-white/80 font-medium underline">
-                  Sign in
-                </Link>
-              </p>
             </div>
-          </Card>
-        </main>
+
+            <div className="flex items-start bg-slate-100/50 p-4 rounded-2xl border border-slate-200/50">
+              <input
+                type="checkbox"
+                id="terms"
+                className="mt-1 w-5 h-5 appearance-none border-2 border-slate-200 rounded checked:bg-primary-600 checked:border-primary-600 transition-all cursor-pointer"
+                required
+              />
+              <label htmlFor="terms" className="ml-3 text-sm text-slate-500 leading-relaxed">
+                I agree to the <Link href="/terms" className="text-primary-600 font-semibold hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-primary-600 font-semibold hover:underline">Privacy Policy</Link>. I understand my data will be handled securely.
+              </label>
+            </div>
+
+            <Button
+              type="submit"
+              fullWidth
+              size="lg"
+              isLoading={loading}
+              className="rounded-2xl py-4 bg-primary-600 hover:bg-primary-700 shadow-xl shadow-primary-500/20 active:scale-[0.98] transition-all transform duration-200 font-bold"
+            >
+              Initialize My Account
+            </Button>
+          </form>
+
+          <p className="text-center text-slate-600">
+            Already a member?{' '}
+            <Link href="/auth/login" className="text-primary-600 font-bold hover:text-primary-700 decoration-2 underline-offset-4 transition-all duration-200">
+              Sign in to LifeCare360
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

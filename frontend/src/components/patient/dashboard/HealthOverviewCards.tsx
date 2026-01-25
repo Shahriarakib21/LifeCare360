@@ -1,57 +1,56 @@
-'use client';
-
-import React from 'react';
 import Card from '@/components/ui/Card';
-import { Activity, Heart, Droplets, Scale, Timer, FlaskConical } from 'lucide-react';
+import Badge from '@/components/ui/Badge';
+import { cn } from '@/lib/utils';
+import { Activity, Heart, Droplets, Scale, FlaskConical } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-interface VitalProps {
-    label: string;
-    value: string;
-    unit: string;
-    trend: 'up' | 'down' | 'stable';
-    trendValue: string;
-    status: 'normal' | 'warning' | 'critical';
-    icon: any;
-    color: string;
-}
-
-const VitalCard = ({ label, value, unit, trend, trendValue, status, icon: Icon, color }: VitalProps) => {
+const VitalCard = ({ label, value, unit, trend, trendValue, status, icon: Icon, color, delay }: any) => {
     const statusColors = {
-        normal: 'bg-teal-50 text-teal-700',
-        warning: 'bg-amber-50 text-amber-700',
-        critical: 'bg-red-50 text-red-700',
+        normal: 'bg-primary-50 text-primary-700 border-primary-100',
+        warning: 'bg-warning-50 text-warning-700 border-warning-100',
+        critical: 'bg-error-50 text-error-700 border-error-100',
     };
 
     return (
-        <Card className="flex flex-col justify-between h-full relative overflow-hidden group hover:shadow-lg transition-all duration-300 border-none shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05),0_10px_20px_-2px_rgba(0,0,0,0.02)]">
-            <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity ${color}`}>
-                <Icon className="w-16 h-16" />
-            </div>
-
-            <div className="flex justify-between items-start mb-4 relative z-10">
-                <div className={`p-3 rounded-2xl ${color} bg-opacity-10 text-opacity-100`}>
-                    <Icon className={`w-6 h-6 ${color.replace('bg-', 'text-')}`} />
-                </div>
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusColors[status]}`}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                </span>
-            </div>
-
-            <div className="relative z-10">
-                <h3 className="text-slate-500 text-sm font-medium mb-1">{label}</h3>
-                <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold text-slate-900">{value}</span>
-                    <span className="text-sm text-slate-400 font-medium">{unit}</span>
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay }}
+            className="h-full"
+        >
+            <Card className="flex flex-col justify-between h-full relative overflow-hidden group hover:shadow-xl transition-all duration-500 border-secondary-100 bg-white rounded-[2rem] p-6">
+                <div className={`absolute -top-4 -right-4 p-8 opacity-5 group-hover:opacity-10 transition-opacity duration-700 rotate-12`}>
+                    <Icon className="w-24 h-24" />
                 </div>
 
-                <div className="mt-3 flex items-center gap-2 text-xs font-medium">
-                    <span className={`${trend === 'down' ? 'text-teal-500' : trend === 'up' ? 'text-rose-500' : 'text-slate-500'} flex items-center bg-slate-50 px-1.5 py-0.5 rounded-md`}>
-                        {trend === 'up' ? '↑' : trend === 'down' ? '↓' : '→'} {trendValue}
-                    </span>
-                    <span className="text-slate-400">vs last visit</span>
+                <div className="flex justify-between items-start mb-6 relative z-10">
+                    <div className={cn("p-4 rounded-2xl bg-gradient-to-br shadow-lg", color)}>
+                        <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <Badge className={cn("text-[10px] font-black uppercase tracking-tighter px-2 py-0.5", statusColors[status as keyof typeof statusColors])}>
+                        {status}
+                    </Badge>
                 </div>
-            </div>
-        </Card>
+
+                <div className="relative z-10 space-y-1">
+                    <p className="text-secondary-500 text-xs font-black uppercase tracking-widest leading-none">{label}</p>
+                    <div className="flex items-baseline gap-1.5">
+                        <span className="text-3xl font-black text-secondary-900 tracking-tight">{value}</span>
+                        <span className="text-sm text-secondary-400 font-bold uppercase">{unit}</span>
+                    </div>
+
+                    <div className="mt-4 flex items-center gap-2">
+                        <div className={cn(
+                            "flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black tracking-tight",
+                            trend === 'down' ? 'bg-primary-50 text-primary-600' : trend === 'up' ? 'bg-error-50 text-error-600' : 'bg-secondary-50 text-secondary-500'
+                        )}>
+                            {trend === 'up' ? '↑' : trend === 'down' ? '↓' : '→'} {trendValue}
+                        </div>
+                        <span className="text-[10px] text-secondary-400 font-bold uppercase tracking-tighter">vs Last visit</span>
+                    </div>
+                </div>
+            </Card>
+        </motion.div>
     );
 };
 
@@ -63,13 +62,10 @@ export default function HealthOverviewCards({ vitalsData = [] }: { vitalsData?: 
         const latest = vitalsData[0]?.data?.vitals;
         if (!latest) return defaultValue;
 
-        // Case insensitive search
         const foundKey = Object.keys(latest).find(k => k.toLowerCase().includes(key.toLowerCase()));
         return foundKey ? latest[foundKey] : defaultValue;
     };
 
-    // Calculate Trend (simplified)
-    // In a real app, compare vitalsData[0] and vitalsData[1]
     const getTrend = (key: string): { dir: 'up' | 'down' | 'stable', val: string } => {
         if (vitalsData.length < 2) return { dir: 'stable', val: '0%' };
 
@@ -98,26 +94,26 @@ export default function HealthOverviewCards({ vitalsData = [] }: { vitalsData?: 
     const weightTrend = getTrend('weight');
     const heartTrend = getTrend('heart');
 
-    const vitals: VitalProps[] = [
+    const vitals = [
         {
-            label: 'Blood Sugar (RBS)',
+            label: 'Blood Sugar',
             value: getValue('sugar', 'N/A'),
             unit: 'mg/dL',
             trend: sugarTrend.dir,
             trendValue: sugarTrend.val,
             status: getValue('sugar', 'N/A') === 'N/A' ? 'normal' : parseFloat(getValue('sugar', '0')) > 140 ? 'warning' : 'normal',
             icon: Droplets,
-            color: 'bg-blue-500 text-blue-500',
+            color: 'from-blue-500 to-blue-600',
         },
         {
             label: 'Blood Pressure',
-            value: getValue('bp', 'N/A'), // matches 'bp' or 'blood pressure'
+            value: getValue('bp', 'N/A'),
             unit: 'mmHg',
             trend: bpTrend.dir,
             trendValue: bpTrend.val,
-            status: 'normal', // Complex parsing needed for BP status (120/80)
+            status: 'normal',
             icon: Activity,
-            color: 'bg-rose-500 text-rose-500',
+            color: 'from-teal-500 to-teal-600',
         },
         {
             label: 'Heart Rate',
@@ -127,7 +123,7 @@ export default function HealthOverviewCards({ vitalsData = [] }: { vitalsData?: 
             trendValue: heartTrend.val,
             status: 'normal',
             icon: Heart,
-            color: 'bg-red-500 text-red-500',
+            color: 'from-rose-500 to-rose-600',
         },
         {
             label: 'Weight',
@@ -137,7 +133,7 @@ export default function HealthOverviewCards({ vitalsData = [] }: { vitalsData?: 
             trendValue: weightTrend.val,
             status: 'normal',
             icon: Scale,
-            color: 'bg-teal-500 text-teal-500',
+            color: 'from-cyan-500 to-cyan-600',
         },
         {
             label: 'Hemoglobin',
@@ -147,14 +143,14 @@ export default function HealthOverviewCards({ vitalsData = [] }: { vitalsData?: 
             trendValue: '0%',
             status: 'normal',
             icon: FlaskConical,
-            color: 'bg-indigo-500 text-indigo-500',
+            color: 'from-indigo-500 to-indigo-600',
         },
     ];
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             {vitals.map((vital, index) => (
-                <VitalCard key={index} {...vital} />
+                <VitalCard key={index} {...vital} delay={index * 0.1} />
             ))}
         </div>
     );

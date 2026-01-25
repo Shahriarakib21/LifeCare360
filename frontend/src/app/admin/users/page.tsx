@@ -22,7 +22,10 @@ import Modal from '@/components/ui/Modal';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 
+import { useRouter } from 'next/navigation';
+
 export default function UserManagement() {
+    const router = useRouter();
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
@@ -171,7 +174,7 @@ export default function UserManagement() {
                                         users.map((user) => (
                                             <tr key={user._id} className="hover:bg-secondary-50 transition-colors">
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center group cursor-pointer" onClick={() => window.location.href = `/admin/users/${user._id}`}>
+                                                    <div className="flex items-center group cursor-pointer" onClick={() => router.push(`/admin/users/${user._id}`)}>
                                                         <div className="flex-shrink-0 h-10 w-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-bold group-hover:bg-primary-200 transition-colors">
                                                             {user.profile?.firstName?.[0] || user.email[0].toUpperCase()}
                                                         </div>

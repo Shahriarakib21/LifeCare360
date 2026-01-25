@@ -424,7 +424,7 @@ const Header: React.FC<HeaderProps> = ({ user: propUser, onLogout }) => {
             transition={{ duration: 0.4, ease: "easeInOut" }}
             className="flex items-center flex-shrink-0"
           >
-            <Logo />
+            <Logo size="header" />
           </motion.div>
 
           {/* Desktop Navigation - Minimizes when search is open */}

@@ -176,13 +176,16 @@ export const login = async (
     console.log(`[DEBUG] User found, checking password...`);
 
     // Check password
+    console.log(`[DEBUG] Comparing password for user: ${user.email}`);
     const isPasswordValid = await user.comparePassword(password);
+
     if (!isPasswordValid) {
       console.log(`[DEBUG] Password mismatch for: ${email}`);
-      console.log(`[DEBUG] Provided: ${password}, Stored hash: ${user.password}`);
+      // CAUTION: Do not log the actual passwords in production!
+      console.log(`[DEBUG] Password verification failed.`);
       throw new AppError('Invalid credentials', 401);
     }
-    console.log(`[DEBUG] Password matched.`);
+    console.log(`[DEBUG] Password matched successfully for: ${email}`);
 
     // Verify MFA if enabled
     if (user.mfaEnabled) {

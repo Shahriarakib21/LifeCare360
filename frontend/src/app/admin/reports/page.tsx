@@ -89,12 +89,12 @@ export default function AdminReports() {
             } else if (activeTab === 'lab-tests') {
                 headers = ['Date', 'Patient Name', 'Patient Email', 'Lab Name', 'Tests Count', 'Status'];
                 csvData = data.map((item: any) => [
-                    new Date(item.createdAt).toLocaleDateString(),
-                    `${item.patientId?.profile?.firstName || ''} ${item.patientId?.profile?.lastName || ''}`.trim(),
-                    item.patientId?.email || '',
-                    item.data?.labTestRequest?.labId?.profile?.firstName || 'Unassigned',
-                    (item.data?.labTestRequest?.tests?.length || 0).toString(),
-                    item.data?.labTestRequest?.status || 'Pending'
+                    new Date(item.date).toLocaleDateString(),
+                    `${item.patientDetails?.profile?.firstName || ''} ${item.patientDetails?.profile?.lastName || ''}`.trim(),
+                    item.patientDetails?.email || '',
+                    item.labDetails?.profile?.firstName || 'Unassigned',
+                    (item.testsCount || 0).toString(),
+                    item.status || 'Pending'
                 ]);
             }
 
@@ -403,21 +403,21 @@ export default function AdminReports() {
                                             {activeTab === 'lab-tests' && (
                                                 <>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
-                                                        {new Date(item.createdAt).toLocaleDateString()}
+                                                        {new Date(item.date).toLocaleDateString()}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-900">
-                                                        {item.patientId?.profile?.firstName} {item.patientId?.profile?.lastName}
-                                                        <div className="text-xs text-secondary-500">{item.patientId?.email}</div>
+                                                        {item.patientDetails?.profile?.firstName} {item.patientDetails?.profile?.lastName}
+                                                        <div className="text-xs text-secondary-500">{item.patientDetails?.email}</div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500">
-                                                        {item.data?.labTestRequest?.labId?.profile?.firstName || 'Unassigned'}
+                                                        {item.labDetails?.profile?.firstName || 'Unassigned'}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary-500">
-                                                        {item.data?.labTestRequest?.tests?.length || 0} Tests
+                                                        {item.testsCount || 0} Tests
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
-                                                        <Badge variant={item.data?.labTestRequest?.status === 'completed' ? 'success' : 'warning'}>
-                                                            {item.data?.labTestRequest?.status || 'Pending'}
+                                                        <Badge variant={item.status === 'completed' ? 'success' : 'warning'}>
+                                                            {item.status || 'Pending'}
                                                         </Badge>
                                                     </td>
                                                 </>

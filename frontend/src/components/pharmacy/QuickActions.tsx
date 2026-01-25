@@ -7,6 +7,8 @@ import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
+import { cn } from '@/lib/utils';
+import Card from '@/components/ui/Card';
 
 const actions = [
     {
@@ -45,21 +47,18 @@ export function QuickActions() {
     const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
     const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
 
-    // Update Stock Form
     const [stockForm, setStockForm] = useState({
         medicineName: '',
         quantity: '',
-        action: 'add' // 'add' or 'remove'
+        action: 'add'
     });
 
-    // Invoice Form
     const [invoiceForm, setInvoiceForm] = useState({
         customerName: '',
         items: [{ medicine: '', quantity: 1, price: '' }],
         paymentMethod: 'Cash'
     });
 
-    // Track Order Form
     const [trackOrderForm, setTrackOrderForm] = useState({
         orderId: ''
     });
@@ -68,7 +67,7 @@ export function QuickActions() {
         switch (actionName) {
             case 'add-medicine':
                 router.push('/pharmacy/inventory');
-                toast.success('Redirecting to inventory page...');
+                toast.success('Accessing inventory records...');
                 break;
             case 'update-stock':
                 setIsUpdateStockOpen(true);
@@ -116,7 +115,6 @@ export function QuickActions() {
             return;
         }
 
-        // Simulate order tracking
         const statuses = ['Processing', 'Packed', 'Shipped', 'Out for Delivery', 'Delivered'];
         const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
 
@@ -150,29 +148,29 @@ export function QuickActions() {
 
     return (
         <>
-            <div className="card h-full">
-                <h2 className="text-lg font-bold text-secondary-900 mb-6">Quick Actions</h2>
-                <div className="grid grid-cols-2 gap-4">
+            <Card className="border-none shadow-soft rounded-[2.5rem] bg-white p-8">
+                <h2 className="text-xl font-black text-secondary-900 tracking-tight mb-8 uppercase text-xs tracking-widest text-primary-600">Quick Protocols</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                     {actions.map((action) => {
                         const Icon = action.icon;
                         return (
                             <button
                                 key={action.name}
                                 onClick={() => handleAction(action.action)}
-                                className="flex flex-col items-center justify-center p-4 rounded-xl border border-secondary-100 hover:border-primary-200 hover:bg-secondary-50 transition-all duration-200 group text-center"
+                                className="flex flex-col items-center justify-center p-6 rounded-3xl border border-secondary-100 hover:border-primary-100 hover:bg-secondary-50 transition-all duration-300 group text-center"
                             >
                                 <div
-                                    className={`w-10 h-10 rounded-full ${action.color} text-white flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform duration-200`}
+                                    className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300 text-white", action.color)}
                                 >
-                                    <Icon className="w-5 h-5" />
+                                    <Icon className="w-6 h-6" />
                                 </div>
-                                <span className="text-sm font-semibold text-secondary-900">{action.name}</span>
-                                <span className="text-xs text-secondary-500 mt-1">{action.desc}</span>
+                                <span className="text-sm font-black text-secondary-900 uppercase tracking-tight group-hover:text-primary-600 transition-all">{action.name}</span>
+                                <span className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mt-1 opacity-0 group-hover:opacity-100 transition-all">{action.desc}</span>
                             </button>
                         );
                     })}
                 </div>
-            </div>
+            </Card>
 
             {/* Update Stock Modal */}
             <Modal

@@ -7,6 +7,7 @@ import {
     updateUser,
     deleteUser,
     toggleUserStatus,
+    verifyUser,
     getAnalytics,
     resetUserPassword,
     getPatients,
@@ -58,6 +59,7 @@ router.put('/users/:id', updateUser);
 router.delete('/users/:id', deleteUser);
 router.patch('/users/:id/status', toggleUserStatus);
 router.post('/users/:id/reset-password', resetUserPassword);
+router.patch('/users/:id/verify', verifyUser);
 router.get('/users/:id/activity', getUserActivityHistory);
 
 // Role-Based User Endpoints

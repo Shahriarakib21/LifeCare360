@@ -15,7 +15,9 @@ import ReportsSection from '@/components/patient/dashboard/ReportsSection';
 import AIInsights from '@/components/patient/dashboard/AIInsights';
 import EmergencySection from '@/components/patient/dashboard/EmergencySection';
 import Badge from '@/components/ui/Badge';
-import { Clock } from 'lucide-react';
+import { Clock, Pill } from 'lucide-react';
+import { motion } from 'framer-motion';
+import Button from '@/components/ui/Button';
 import PendingPaymentAlert from '@/components/patient/PendingPaymentAlert';
 
 const MOCK_DATA = {
@@ -297,45 +299,61 @@ export default function PatientDashboard() {
       </div>
     );
   }
-
   const pendingPayments = data.appointments.filter(a => a.feeStatus === 'unpaid' || a.feeStatus === 'pending');
 
   return (
-    <div className="space-y-8 pb-8">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-10 pb-12"
+    >
       {/* Unified Pending Payment Alerts */}
       {data.pendingPayments.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
           {data.pendingPayments.map((payment) => (
             <PendingPaymentAlert key={payment.invoiceId} payment={payment} />
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Welcome Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <Badge variant="primary" className="bg-teal-50 text-teal-700 border-teal-100 px-3 py-1 mb-3 w-fit">
-            <Clock className="w-3 h-3 mr-1" />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-gradient-to-br from-primary-50 to-white p-8 rounded-[2.5rem] border border-primary-100 shadow-soft">
+        <div className="space-y-4">
+          <Badge variant="primary" className="bg-primary-500/10 text-primary-700 border-primary-200 px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase">
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </Badge>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-            Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-cyan-600">{firstName}</span>! 👋
+          <h1 className="text-4xl lg:text-5xl font-black text-secondary-900 tracking-tight leading-tight">
+            Hi, <span className="text-primary-600">{firstName}</span>! 👋
           </h1>
-          <p className="text-slate-500 mt-2 text-lg">
-            You have <span className="font-bold text-slate-800">{stats.appointmentsCount} upcoming appointments</span> and <span className="font-bold text-slate-800">{stats.medicationsCount} active medications</span>.
+          <p className="text-secondary-500 text-lg leading-relaxed max-w-xl">
+            You have <span className="font-bold text-secondary-900 underline decoration-primary-500/30 decoration-4">{stats.appointmentsCount} upcoming</span> appointments and <span className="font-bold text-secondary-900 underline decoration-secondary-500/30 decoration-4">{stats.medicationsCount} active</span> prescriptions.
           </p>
         </div>
 
-        <div className="flex gap-3">
-          <button
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Button
             onClick={() => router.push('/medicines')}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-all font-medium shadow-sm"
+            variant="accent"
+            size="lg"
+            className="rounded-2xl px-8 shadow-xl"
+            leftIcon={<Pill className="w-5 h-5" />}
           >
-            <div className="p-1 px-1.5 bg-primary-100 rounded-lg text-primary-600">
-              <span className="text-lg">💊</span>
-            </div>
             Shop Medicines
-          </button>
+          </Button>
+          <Button
+            onClick={() => router.push('/patient/appointments')}
+            variant="secondary"
+            size="lg"
+            className="rounded-2xl px-8 bg-white"
+          >
+            Manage Records
+          </Button>
         </div>
       </div>
 
@@ -374,6 +392,6 @@ export default function PatientDashboard() {
           <EmergencySection />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

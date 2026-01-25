@@ -40,7 +40,7 @@ export function Sidebar() {
   return (
     <div className="flex flex-col h-full w-64 bg-white border-r border-secondary-100">
       <div className="flex items-center justify-center h-20 border-b border-secondary-100">
-        <Logo size="lg" />
+        <Logo size="sidebar" />
       </div>
 
       <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">

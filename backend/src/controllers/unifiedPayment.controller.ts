@@ -4,12 +4,14 @@ import EHR from '../models/mongodb/EHR.model';
 import Appointment from '../models/postgres/Appointment.model';
 import LabRevenue from '../models/mongodb/LabRevenue.model';
 import RevenueTransaction from '../models/mongodb/RevenueTransaction.model';
+import Order from '../models/postgres/Order.model';
 import Patient from '../models/mongodb/Patient.model';
 import User from '../models/mongodb/User.model';
 import { createNotification, sendRealtimeNotification, notifyLabPayment } from '../utils/notifications';
 import { getIO } from '../utils/socket';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { AppError } from '../middleware/errorHandler';
+import { logger } from '../utils/logger';
 
 /**
  * Initialize a payment for any service (Doctor/Lab/Pharmacy)
@@ -60,14 +62,14 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
             }
             providerId = labRequest.data?.labTestRequest?.labId;
 
-            console.log('Lab Payment Initiation:', {
+            logger.info('Lab Payment Initiation:', {
                 requestId: serviceId,
                 extractedProviderId: providerId?.toString(),
                 hasLabTestRequest: !!labRequest.data?.labTestRequest
             });
 
             if (!providerId) {
-                console.error('Lab Payment Error: No lab assigned to request', serviceId);
+                logger.error('Lab Payment Error: No lab assigned to request', serviceId);
                 return res.status(400).json({
                     success: false,
                     message: 'Lab must be assigned before payment. Please select a laboratory first.'
@@ -118,7 +120,7 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
             },
         });
     } catch (error: any) {
-        console.error('Error initiating payment:', error);
+        logger.error('Error initiating payment:', error);
         return res.status(500).json({ success: false, message: error.message || 'Failed to initiate payment' });
     }
 };
@@ -189,7 +191,7 @@ export const completePayment = async (req: AuthRequest, res: Response) => {
                 // Update Lab Revenue
                 try {
                     if (!payment.providerId) {
-                        console.error('Lab Revenue Error: providerId is missing from payment', payment._id);
+                        logger.error('Lab Revenue Error: providerId is missing from payment', payment._id);
                         throw new Error('Provider ID is required for lab revenue tracking');
                     }
 
@@ -198,7 +200,7 @@ export const completePayment = async (req: AuthRequest, res: Response) => {
                         price: item.total
                     }));
 
-                    console.log('Recording lab revenue:', {
+                    logger.info('Recording lab revenue:', {
                         labId: payment.providerId.toString(),
                         amount: payment.totalAmount,
                         testCount: testBreakdown.length
@@ -210,7 +212,7 @@ export const completePayment = async (req: AuthRequest, res: Response) => {
                         testBreakdown
                     );
 
-                    console.log('Lab revenue recorded successfully for lab:', payment.providerId.toString());
+                    logger.info('Lab revenue recorded successfully for lab:', payment.providerId.toString());
 
                     // Notify Lab
                     if (getIO()) {
@@ -228,12 +230,52 @@ export const completePayment = async (req: AuthRequest, res: Response) => {
                         );
                     }
                 } catch (revenueError) {
-                    console.error('Error updating lab revenue or notifying lab:', revenueError);
+                    logger.error('Error updating lab revenue or notifying lab:', revenueError);
                     // Don't throw - we still want to complete the payment even if revenue tracking fails
                 }
             }
         } else if (payment.serviceType === 'pharmacy') {
-            // TODO: Update pharmacy order status
+            const pharmacyOrder = await Order.findByPk(payment.serviceId.toString());
+            if (pharmacyOrder) {
+                pharmacyOrder.paymentStatus = 'paid';
+                pharmacyOrder.status = 'confirmed';
+                await pharmacyOrder.save();
+
+                // Note: Pharmacy revenue aggregation logic can be added here similar to labs
+                // For now, we mainly confirm the order so the pharmacy can proceed
+
+                // Notify Pharmacy
+                if (payment.providerId && getIO()) {
+                    // We need a helper to get pharmacy user details if needed, 
+                    // or just send the notification to the providerId
+                    try {
+                        const patientUser = await User.findById(userId);
+                        const patientName = `${patientUser?.profile?.firstName || ''} ${patientUser?.profile?.lastName || ''}`.trim() || patientUser?.email || 'Patient';
+
+                        await createNotification(
+                            payment.providerId,
+                            'payment_received',
+                            'Pharmacy Order Paid',
+                            `${patientName} paid ৳${payment.totalAmount.toLocaleString()} for medicine order #${pharmacyOrder.id}`,
+                            { orderId: pharmacyOrder.id, amount: payment.totalAmount }
+                        );
+
+                        // Convert socket emission to use string ID
+                        getIO().to(payment.providerId.toString()).emit('notification', {
+                            title: 'Pharmacy Order Paid',
+                            message: `${patientName} paid ৳${payment.totalAmount.toLocaleString()} for medicine order #${pharmacyOrder.id}`,
+                            type: 'payment_received',
+                            data: { orderId: pharmacyOrder.id, amount: payment.totalAmount }
+                        });
+
+                        logger.info('Pharmacy payment notification sent to:', payment.providerId.toString());
+                    } catch (notifyError) {
+                        logger.error('Failed to notify pharmacy:', notifyError);
+                    }
+                }
+            } else {
+                logger.error('Pharmacy order not found for payment:', payment.serviceId);
+            }
         }
 
         // Create revenue transaction
@@ -265,7 +307,7 @@ export const completePayment = async (req: AuthRequest, res: Response) => {
             );
             sendRealtimeNotification(getIO(), userId, notification);
         } catch (notifError) {
-            console.error('Failed to send payment notification:', notifError);
+            logger.error('Failed to send payment notification:', notifError);
         }
 
         return res.status(200).json({
@@ -283,7 +325,7 @@ export const completePayment = async (req: AuthRequest, res: Response) => {
             },
         });
     } catch (error: any) {
-        console.error('Error completing payment:', error);
+        logger.error('Error completing payment:', error);
         return res.status(500).json({ success: false, message: error.message || 'Failed to complete payment' });
     }
 };
@@ -356,7 +398,7 @@ export const getPendingPayments = async (req: AuthRequest, res: Response) => {
             data: { payments: enrichedPayments },
         });
     } catch (error: any) {
-        console.error('Error fetching pending payments:', error);
+        logger.error('Error fetching pending payments:', error);
         return res.status(500).json({ success: false, message: error.message || 'Failed to fetch pending payments' });
     }
 };
@@ -391,7 +433,7 @@ export const getPaymentByInvoice = async (req: AuthRequest, res: Response) => {
             data: { payment },
         });
     } catch (error: any) {
-        console.error('Error fetching payment:', error);
+        logger.error('Error fetching payment:', error);
         return res.status(500).json({ success: false, message: error.message || 'Failed to fetch payment' });
     }
 };
@@ -418,7 +460,7 @@ export const expireOldPayments = async (req: Request, res: Response) => {
             data: { expiredCount: result.modifiedCount },
         });
     } catch (error: any) {
-        console.error('Error expiring old payments:', error);
+        logger.error('Error expiring old payments:', error);
         return res.status(500).json({ success: false, message: error.message || 'Failed to expire old payments' });
     }
 };

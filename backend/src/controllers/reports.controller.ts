@@ -225,6 +225,7 @@ export const getLabTestsReport = async (req: Request, res: Response, next: NextF
                 labDetails: reqData.labId, // This is the populated Lab User
                 date: test.createdAt,
                 status: reqData.status,
+                testsCount: reqData.tests?.length || 0,
                 cost: reqData.price || 0,
                 doctorName: (test as any).performedBy || 'System' // 'performedBy' is usually doctor name/ID string in some EHR models
             };

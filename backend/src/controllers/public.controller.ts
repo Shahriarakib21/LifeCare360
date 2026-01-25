@@ -10,6 +10,7 @@ import { Op } from 'sequelize';
 import { sequelize } from '../config/database';
 
 // Search doctors (public)
+// Search doctors (public)
 export const searchDoctors = async (
   req: Request,
   res: Response,
@@ -18,10 +19,13 @@ export const searchDoctors = async (
   try {
     const { specialization, city, experience, rating, page = 1, limit = 20 } = req.query;
 
+    console.log('[DEBUG] searchDoctors called with:', req.query);
+
     // Check if PostgreSQL is connected
     try {
       await sequelize.authenticate();
-    } catch (dbError) {
+    } catch (dbError: any) {
+      console.error('[ERROR] PostgreSQL connection failed in searchDoctors:', dbError.message);
       // PostgreSQL not available - return empty result
       res.json({
         success: true,
@@ -70,12 +74,38 @@ export const searchDoctors = async (
     // Get doctors from PostgreSQL (get more than needed to filter by name)
     // Don't filter by specialization in DB - we'll filter after fetching names
     const maxResults = specialization ? 100 : 50; // Get more results if searching
-    const { count, rows } = await Doctor.findAndCountAll({
-      where: query,
-      limit: maxResults,
-      offset: 0,
-      order: [['rating', 'DESC'], ['totalReviews', 'DESC']],
-    });
+
+    let rows: any[] = [];
+    let count = 0;
+
+    try {
+      const result = await Doctor.findAndCountAll({
+        where: query,
+        limit: maxResults,
+        offset: 0,
+        order: [['rating', 'DESC'], ['totalReviews', 'DESC']],
+      });
+      rows = result.rows;
+      count = result.count;
+    } catch (findError: any) {
+      console.error('[ERROR] Doctor.findAndCountAll failed:', findError.message);
+      // If table doesn't exist or query fails, return empty
+      res.json({
+        success: true,
+        data: {
+          doctors: [],
+          pagination: {
+            page: Number(page),
+            limit: Number(limit),
+            total: 0,
+            pages: 0,
+          },
+        },
+        message: 'Error fetching doctors from database.',
+      });
+      return;
+    }
+
 
     // Fetch user names for each doctor
     const searchTerm = specialization ? String(specialization).toLowerCase().trim() : '';
@@ -85,7 +115,12 @@ export const searchDoctors = async (
         let email = doctor.contact?.email || '';
 
         try {
-          const user = await User.findById(doctor.userId);
+          // Add timeout for MongoDB queries strictly
+          const userPromise = User.findById(doctor.userId);
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Mongo Timeout')), 2000)); // 2s timeout
+
+          const user: any = await Promise.race([userPromise, timeoutPromise]);
+
           if (user && user.profile) {
             const { firstName, lastName } = user.profile;
             if (firstName || lastName) {
@@ -93,8 +128,9 @@ export const searchDoctors = async (
             }
             email = user.email || email;
           }
-        } catch (error) {
+        } catch (error: any) {
           // If user not found, use default name
+          console.warn(`[WARN] Failed to fetch user details for doctor ${doctor.id}: ${error.message}`);
         }
 
         return {
@@ -118,8 +154,8 @@ export const searchDoctors = async (
 
     // Apply pagination after filtering
     const total = filteredDoctors.length;
-    const offset = (Number(page) - 1) * Number(limit);
-    const paginatedDoctors = filteredDoctors.slice(offset, offset + Number(limit));
+    const offsetCalc = (Number(page) - 1) * Number(limit);
+    const paginatedDoctors = filteredDoctors.slice(offsetCalc, offsetCalc + Number(limit));
 
     res.json({
       success: true,
@@ -134,6 +170,7 @@ export const searchDoctors = async (
       },
     });
   } catch (error: any) {
+    console.error('[ERROR] Unhandled error in searchDoctors:', error);
     // Handle Sequelize connection errors gracefully
     if (error.name === 'SequelizeConnectionError' || error.name === 'SequelizeDatabaseError') {
       res.json({

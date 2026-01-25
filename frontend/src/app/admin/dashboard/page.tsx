@@ -263,7 +263,7 @@ export default function AdminDashboard() {
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} allowDecimals={false} />
                                 <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                                 <Area type="monotone" dataKey="tests" name="Tests" stroke="#8B5CF6" fillOpacity={1} fill="url(#colorTests)" />
                             </AreaChart>
@@ -281,8 +281,8 @@ export default function AdminDashboard() {
                         <ResponsiveContainer width="100%" height="100%">
                             <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                                 <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis type="number" dataKey="logins" name="Logins" unit="" label={{ value: 'Logins', position: 'bottom' }} />
-                                <YAxis type="number" dataKey="actions" name="Appts" unit="" label={{ value: 'Appointments', angle: -90, position: 'insideLeft' }} />
+                                <XAxis type="number" dataKey="logins" name="Logins" allowDecimals={false} label={{ value: 'Logins', position: 'bottom', offset: 0 }} />
+                                <YAxis type="number" dataKey="actions" name="Appts" allowDecimals={false} label={{ value: 'Appointments', angle: -90, position: 'insideLeft' }} />
                                 <ZAxis type="number" dataKey="size" range={[60, 400]} />
                                 <Tooltip cursor={{ strokeDasharray: '3 3' }} />
                                 <Scatter name="Engagement" data={scatterData} fill="#3B82F6" />

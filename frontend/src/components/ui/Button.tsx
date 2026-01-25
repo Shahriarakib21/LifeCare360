@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
+export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onAnimationStart' | 'onDrag' | 'onDragEnd' | 'onDragStart'> {
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'accent';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
@@ -29,41 +30,40 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
     const variants = {
-      primary: 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-sm hover:shadow-md',
-      secondary: 'bg-secondary-100 text-secondary-900 hover:bg-secondary-200 active:bg-secondary-300',
-      ghost: 'bg-transparent text-secondary-700 hover:bg-secondary-100 active:bg-secondary-200',
-      danger: 'bg-error-600 text-white hover:bg-error-700 active:bg-error-800',
-      success: 'bg-success-600 text-white hover:bg-success-700 active:bg-success-800',
+      primary: 'bg-primary-600 text-white hover:bg-primary-700 shadow-teal-500/20 shadow-lg',
+      secondary: 'bg-secondary-500 text-white hover:bg-secondary-600 shadow-aqua-500/20 shadow-md',
+      ghost: 'bg-transparent text-secondary-700 hover:bg-secondary-50',
+      danger: 'bg-error-600 text-white hover:bg-error-700',
+      success: 'bg-success-600 text-white hover:bg-success-700',
+      accent: 'bg-accent-500 text-white hover:bg-accent-600 shadow-orange-500/20 shadow-lg',
     };
 
     const sizes = {
       sm: 'px-4 py-2 text-sm',
       md: 'px-6 py-3 text-sm',
-      lg: 'px-8 py-4 text-base',
+      lg: 'px-8 py-4 text-base font-semibold',
     };
 
-    // Ensure type is always set to prevent hydration mismatches
-    // Default to 'button' if not explicitly provided
     const buttonType: 'button' | 'submit' | 'reset' = (type || 'button') as 'button' | 'submit' | 'reset';
 
     return (
-      <button
-        ref={ref}
+      <motion.button
+        ref={ref as any}
+        whileHover={!disabled && !isLoading ? { scale: 1.02, y: -1 } : {}}
+        whileTap={!disabled && !isLoading ? { scale: 0.98 } : {}}
         type={buttonType}
         className={cn(
           baseStyles,
           variants[variant],
           sizes[size],
           fullWidth && 'w-full',
-          'transform transition-transform duration-200',
-          !disabled && !isLoading && 'hover:scale-[1.02] active:scale-[0.98]',
           className
         )}
         disabled={disabled || isLoading}
-        {...props}
+        {...(props as any)}
       >
         {isLoading ? (
           <>
@@ -96,7 +96,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             {rightIcon && <span className="ml-2">{rightIcon}</span>}
           </>
         )}
-      </button>
+      </motion.button>
     );
   }
 );

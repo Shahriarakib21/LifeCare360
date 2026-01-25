@@ -49,7 +49,7 @@ const Footer: React.FC = () => {
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <div className="mb-4">
-              <Logo textClassName="text-white" />
+              <Logo size="footer" theme="dark" showText textClassName="text-white" />
             </div>
             <p className="text-secondary-400 text-sm mb-6 max-w-xs">
               Your complete healthcare management platform. Secure, intelligent, and designed for your lifetime health journey.

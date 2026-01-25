@@ -13,32 +13,16 @@ import {
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Badge from '@/components/ui/Badge';
 import TypingAnimation from '@/components/ui/TypingAnimation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
-import LabSection from '@/components/home/LabSection';
-import PriceTransparency from '@/components/home/PriceTransparency';
-import LabAwareness from '@/components/home/LabAwareness';
-
-interface Doctor {
-  id: number;
-  name?: string;
-  specialization: string;
-  experience: number;
-  rating: number;
-  totalReviews: number;
-  consultationFee: number;
-  profileImage?: string;
-  address?: {
-    city?: string;
-    state?: string;
-  };
-  hospital?: string;
-  clinic?: string;
-  isVerified: boolean;
-}
+import { cn } from '@/lib/utils';
+import ImagePlaceholder from '@/components/ui/ImagePlaceholder';
 
 export default function HomePage() {
+  console.log('HomePage Rendering');
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
 
@@ -62,7 +46,9 @@ export default function HomePage() {
         const doctorsData = response.data?.data?.doctors || [];
         setDoctors(doctorsData);
       } catch (error) {
-        console.error('Error fetching doctors:', error);
+        console.warn('Error fetching doctors (using fallback/empty):', error);
+        // Fallback to empty array to prevent UI crash
+        setDoctors([]);
       } finally {
         setLoading(false);
       }
@@ -84,267 +70,246 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [doctors.length, isPaused]);
 
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index);
-  };
-
-  const nextSlide = () => {
-    if (doctors.length === 0) return;
-    setCurrentIndex((prev) => (prev + 1) % Math.ceil(doctors.length / 3));
-  };
-
-  const prevSlide = () => {
-    if (doctors.length === 0) return;
-    setCurrentIndex((prev) => (prev - 1 + Math.ceil(doctors.length / 3)) % Math.ceil(doctors.length / 3));
-  };
-
-  const visibleDoctors = doctors.length > 0 ? doctors.slice(currentIndex * 3, currentIndex * 3 + 3) : [];
-
-  const importantNotes = [
-    { icon: Shield, text: 'HIPAA Compliant & Secure', color: 'text-primary-600' },
-    { icon: Clock, text: '24/7 Access to Your Health Records', color: 'text-success-600' },
-    { icon: Heart, text: 'AI-Powered Health Insights', color: 'text-error-600' },
-    { icon: Zap, text: 'Instant Prescription Delivery', color: 'text-warning-600' },
-  ];
-
-  const features = [
+  const quickAccessCards = [
     {
-      icon: FileText,
-      title: 'Lifetime Electronic Health Records',
-      description: 'Complete medical history from birth to present, securely stored and easily accessible. Never lose track of your health data again.',
-      color: 'from-primary-500 to-primary-600',
-    },
-    {
-      icon: Brain,
-      title: 'AI-Powered Health Analytics',
-      description: 'Intelligent health trend analysis, anomaly detection, and personalized recommendations powered by advanced machine learning.',
-      color: 'from-purple-500 to-purple-600',
-    },
-    {
-      icon: Users,
-      title: 'Connected Healthcare Ecosystem',
-      description: 'Seamlessly connect with doctors, pharmacies, labs, hospitals, and insurance providers through a unified platform.',
-      color: 'from-blue-500 to-blue-600',
-    },
-    {
-      icon: Shield,
-      title: 'Bank-Level Security',
-      description: 'HIPAA & GDPR compliant with AES-256 encryption, MFA authentication, and patient-controlled data visibility.',
-      color: 'from-green-500 to-green-600',
-    },
-    {
-      icon: Activity,
-      title: 'Real-Time Health Monitoring',
-      description: 'Track vital signs, medication adherence, and health metrics with smart reminders and automated alerts.',
-      color: 'from-red-500 to-red-600',
-    },
-    {
-      icon: Heart,
-      title: 'Personalized Care Plans',
-      description: 'Customized diet plans, exercise routines, and treatment recommendations tailored to your specific health needs.',
-      color: 'from-pink-500 to-pink-600',
-    },
-    {
-      icon: Video,
-      title: 'Telemedicine Support',
-      description: 'Consult with doctors remotely through secure video calls, eliminating the need for in-person visits when appropriate.',
-      color: 'from-indigo-500 to-indigo-600',
-    },
-    {
-      icon: FlaskConical,
-      title: 'Lab Test Integration',
-      description: 'Direct integration with laboratories for seamless test result delivery and comprehensive health analysis.',
-      color: 'from-cyan-500 to-cyan-600',
-    },
-  ];
-
-  const howItWorks = [
-    {
-      step: '01',
-      title: 'Create Your Account',
-      description: 'Sign up in minutes with your email. Complete your profile and set up your health preferences.',
-      icon: Users,
-    },
-    {
-      step: '02',
-      title: 'Connect with Providers',
-      description: 'Find and connect with verified doctors, book appointments, and access your medical records.',
+      id: 'doctor',
       icon: Stethoscope,
+      title: 'Find Doctors',
+      description: 'Consult with world-class specialists online or in-person.',
+      href: '/doctors',
+      color: 'bg-primary-50 text-primary-600',
+      delay: 0.1
     },
     {
-      step: '03',
-      title: 'Manage Your Health',
-      description: 'Track your health metrics, receive AI-powered insights, and manage medications all in one place.',
-      icon: Activity,
+      id: 'lab',
+      icon: FlaskConical,
+      title: 'Book Lab Test',
+      description: 'Reliable diagnostics with home sample collection.',
+      href: '/labs',
+      color: 'bg-secondary-50 text-secondary-600',
+      delay: 0.2
     },
     {
-      step: '04',
-      title: 'Stay Informed',
-      description: 'Get personalized recommendations, health alerts, and access to your complete medical history anytime.',
-      icon: Brain,
+      id: 'pharmacy',
+      icon: Pill,
+      title: 'Pharmacy Shop',
+      description: 'Order medicines and healthcare products delivered fast.',
+      href: '/medicines',
+      color: 'bg-green-50 text-green-600',
+      delay: 0.3
     },
+    {
+      id: 'blog',
+      icon: Heart,
+      title: 'Health Blog',
+      description: 'Expert medical advice and wellness tips for your daily life.',
+      href: '/blog',
+      color: 'bg-accent-50 text-accent-600',
+      delay: 0.4
+    },
+  ];
+
+  const stats = [
+    { number: '10K+', label: 'Happy Patients', icon: Users, delay: 0 },
+    { number: '500+', label: 'Specialist Doctors', icon: Stethoscope, delay: 0.1 },
+    { number: '150+', label: 'Partner Labs', icon: Building2, delay: 0.2 },
+    { number: '24/7', label: 'Support Available', icon: Clock, delay: 0.3 },
   ];
 
   const benefits = [
     {
       title: 'For Patients',
       items: [
-        'Lifetime access to all medical records',
-        'AI-powered health insights and predictions',
-        'Easy appointment booking and management',
-        'Medication reminders and tracking',
-        'Secure communication with healthcare providers',
-        'Prescription delivery to your doorstep',
-      ],
+        'Easy access to medical records',
+        'Direct consultation with specialists',
+        'Hassle-free lab test bookings',
+        'Secure prescription management'
+      ]
     },
     {
       title: 'For Doctors',
       items: [
-        'Comprehensive patient history at your fingertips',
-        'Digital prescription management',
-        'Efficient appointment scheduling',
-        'Telemedicine capabilities',
-        'Patient consent management',
-        'Analytics and reporting tools',
-      ],
+        'Digital patient management',
+        'Easy health tracking analytics',
+        'Secure communication tools',
+        'Organized schedule management'
+      ]
     },
     {
-      title: 'For Pharmacies',
+      title: 'For Partners',
       items: [
-        'Online medicine catalog',
-        'Prescription verification system',
-        'Order management and tracking',
-        'Refill reminders for patients',
-        'Alternative medicine suggestions',
-        'Secure payment processing',
-      ],
-    },
+        'Seamless lab collaboration',
+        'Efficient order fulfillment',
+        'Integrated inventory tracking',
+        'Direct patient engagement'
+      ]
+    }
   ];
 
-  const stats = [
-    { number: '10K+', label: 'Active Patients', icon: Users },
-    { number: '500+', label: 'Verified Doctors', icon: Stethoscope },
-    { number: '50K+', label: 'Medical Records', icon: FileText },
-    { number: '99.9%', label: 'Uptime', icon: Shield },
+  const importantNotes = [
+    { icon: Shield, text: 'Verified Specialists', color: 'text-primary-200' },
+    { icon: Lock, text: 'Secure Data', color: 'text-primary-200' },
+    { icon: Activity, text: 'Real-time Tracking', color: 'text-primary-200' },
+    { icon: Clock, text: '24/7 Availability', color: 'text-primary-200' }
   ];
 
-  // Don't render landing page content if user is a doctor (will be redirected)
+  const nextSlide = useCallback(() => {
+    if (doctors.length === 0) return;
+    const maxSlides = Math.ceil(doctors.length / 3);
+    setCurrentIndex((prev) => (prev + 1) % maxSlides);
+  }, [doctors.length]);
+
+  const prevSlide = useCallback(() => {
+    if (doctors.length === 0) return;
+    const maxSlides = Math.ceil(doctors.length / 3);
+    setCurrentIndex((prev) => (prev - 1 + maxSlides) % maxSlides);
+  }, [doctors.length]);
+
   if (isAuthenticated && user?.role === 'doctor') {
     return null;
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white overflow-hidden">
       <Header />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white">
-          {/* Animated Background Lines */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {/* Green Lines */}
-            <div className="absolute top-0 left-0 w-full h-full">
-              {[10, 30, 50, 70, 90].map((left, idx) => (
-                <motion.div
-                  key={`green-${idx}`}
-                  className="absolute w-1 bg-success-500 opacity-20"
-                  style={{ left: `${left}%`, height: '100%' }}
-                  animate={{ y: idx % 2 === 0 ? [0, -100, 0] : [0, 100, 0] }}
-                  transition={{ duration: 7 + idx, repeat: Infinity, ease: 'linear' }}
-                />
-              ))}
-            </div>
-
-            {/* Yellow Lines */}
-            <div className="absolute top-0 left-0 w-full h-full">
-              {[15, 40, 60, 85].map((left, idx) => (
-                <motion.div
-                  key={`yellow-${idx}`}
-                  className="absolute w-1 bg-warning-400 opacity-25"
-                  style={{ left: `${left}%`, height: '105%' }}
-                  animate={{ y: idx % 2 === 0 ? [0, 110, 0] : [0, -95, 0] }}
-                  transition={{ duration: 8 + idx, repeat: Infinity, ease: 'linear' }}
-                />
-              ))}
-            </div>
+        {/* --- Hero Section --- */}
+        <section className="relative pt-20 pb-16 lg:pt-32 lg:pb-24 flex items-center">
+          {/* Animated Background Gradients */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary-100/50 rounded-full blur-[120px] animate-pulse"></div>
+            <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-secondary-100/50 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
           </div>
 
           <div className="container-custom relative z-10">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
               <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="text-center lg:text-left"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="text-center lg:text-left space-y-8"
               >
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-secondary-900 mb-6">
-                  <TypingAnimation
-                    text="Your Complete Healthcare Management Platform"
-                    speed={50}
-                    className="block"
-                  />
+                <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary-50 border border-primary-100 text-primary-700 text-sm font-bold tracking-wide animate-fade-in">
+                  <Activity className="w-4 h-4 mr-2" />
+                  THE FUTURE OF HEALTHCARE IS HERE
+                </div>
+
+                <h1 className="text-5xl lg:text-7xl font-black text-secondary-900 leading-[1.1]">
+                  Complete <span className="text-primary-600">Care</span> <br />
+                  For Your <span className="text-secondary-500">Family</span>
                 </h1>
-                <p className="text-lg md:text-xl text-secondary-600 mb-10 max-w-2xl mx-auto lg:mx-0">
-                  Secure, AI-powered healthcare connecting patients, doctors, pharmacies, and labs through a unified digital ecosystem.
+
+                <p className="text-xl text-secondary-600 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                  Join 10,000+ patients managing their medical records, consulting with experts, and ordering lab tests through our secure, unified ecosystem.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
                   <Link href="/auth/register">
-                    <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-4">
-                      Get Started Free
-                      <ArrowRight className="ml-2 w-5 h-5" />
+                    <Button variant="accent" size="lg" className="px-10 py-5 rounded-2xl group shadow-2xl">
+                      Register as Patient
+                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
                   <Link href="/doctors">
-                    <Button variant="secondary" size="lg" className="w-full sm:w-auto text-lg px-8 py-4">
+                    <Button variant="secondary" size="lg" className="px-10 py-5 rounded-2xl bg-white/50 backdrop-blur-md">
                       Find a Doctor
                     </Button>
                   </Link>
                 </div>
+
+                {/* Statistics Preview */}
+                <div className="pt-8 border-t border-secondary-100 grid grid-cols-2 gap-8 lg:max-w-md">
+                  <div>
+                    <p className="text-3xl font-black text-secondary-900">500+</p>
+                    <p className="text-sm font-medium text-secondary-500">Verified Doctors</p>
+                  </div>
+                  <div>
+                    <p className="text-3xl font-black text-secondary-900">100%</p>
+                    <p className="text-sm font-medium text-secondary-500">Secure Privacy</p>
+                  </div>
+                </div>
               </motion.div>
 
               <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="relative w-full h-[500px] lg:h-[600px]"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+                className="relative hidden lg:block"
               >
-                <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl">
+                <div className="relative z-10 w-full aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] group">
                   <Image
                     src="/hero-image.jpg"
-                    alt="Healthcare Management Platform"
+                    alt="LifeCare360 Professional Care"
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
                     priority
                   />
-                  <div className="absolute top-4 right-4 w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full z-10"></div>
-                  <div className="absolute bottom-4 left-4 w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full z-10"></div>
+                  {/* Fallback Placeholder */}
+                  <ImagePlaceholder
+                    type="generic"
+                    className="absolute inset-0 z-0 opacity-0 group-has-[:not(img)]:opacity-100"
+                  />
+
+                  {/* Floating Action Badge */}
+                  <div className="absolute bottom-8 left-8 right-8 bg-white/90 backdrop-blur-xl p-6 rounded-3xl shadow-2xl flex items-center gap-4 animate-slide-up">
+                    <div className="w-14 h-14 rounded-2xl bg-success-100 flex items-center justify-center">
+                      <Shield className="w-8 h-8 text-success-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-secondary-900">Instant Access</p>
+                      <p className="text-xs text-secondary-500">Your health data, anywhere, anytime.</p>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Decorative Elements */}
+                <div className="absolute -top-6 -right-6 w-32 h-32 bg-primary-100 rounded-full blur-2xl opacity-60"></div>
+                <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-secondary-100 rounded-full blur-3xl opacity-60"></div>
               </motion.div>
             </div>
           </div>
         </section>
 
-        {/* Statistics Section */}
-        <section className="py-16 bg-gradient-to-br from-primary-50 to-white">
+        {/* --- Quick Access Grid --- */}
+        <section className="py-24 bg-secondary-50/50">
           <div className="container-custom">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {stats.map((stat, index) => {
-                const Icon = stat.icon;
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+              <div className="space-y-4 max-w-2xl">
+                <p className="text-primary-600 font-black tracking-widest text-sm uppercase">Medical Services</p>
+                <h2 className="text-4xl lg:text-5xl font-black text-secondary-900">Everything you need, <br />in one secure platform.</h2>
+              </div>
+              <p className="text-secondary-500 max-w-xs md:text-right">Access world-class clinical services with just a few clicks.</p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {quickAccessCards.map((card) => {
+                const Icon = card.icon;
                 return (
                   <motion.div
-                    key={index}
+                    key={card.id}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="text-center"
+                    transition={{ duration: 0.5, delay: card.delay }}
                   >
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-2xl mb-4">
-                      <Icon className="w-8 h-8 text-primary-600" />
-                    </div>
-                    <h3 className="text-3xl md:text-4xl font-bold text-secondary-900 mb-2">{stat.number}</h3>
-                    <p className="text-secondary-600 font-medium">{stat.label}</p>
+                    <Link href={card.href} className="flex flex-col h-full group">
+                      <div className="bg-white p-8 rounded-[2rem] border border-secondary-100 shadow-soft hover:shadow-medium transition-all duration-500 flex flex-col items-center text-center space-y-6 h-full hover:border-primary-100">
+                        <div className={cn("w-20 h-20 rounded-[1.5rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-500", card.color)}>
+                          <Icon className="w-10 h-10" />
+                        </div>
+                        <div className="space-y-4">
+                          <h3 className="text-xl font-black text-secondary-900">{card.title}</h3>
+                          <p className="text-secondary-500 text-sm leading-relaxed">{card.description}</p>
+                        </div>
+                        <div className="pt-4 mt-auto">
+                          <span className="text-primary-600 font-bold text-sm inline-flex items-center group-hover:gap-2 transition-all">
+                            Access Now <ArrowRight className="w-4 h-4 ml-1" />
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
                   </motion.div>
                 );
               })}
@@ -352,332 +317,339 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Featured Doctors Carousel */}
-        {!loading && doctors.length > 0 && (
-          <section className="py-20 bg-white relative overflow-hidden">
-            <div className="container-custom">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="text-center mb-12"
-              >
-                <h2 className="text-4xl md:text-5xl font-bold text-secondary-900 mb-4">
-                  Our Featured Doctors
-                </h2>
-                <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
-                  Meet our team of experienced and verified healthcare professionals
-                </p>
-              </motion.div>
-
-              <div
-                className="relative"
-                onMouseEnter={() => setIsPaused(true)}
-                onMouseLeave={() => setIsPaused(false)}
-              >
-                {doctors.length > 3 && (
-                  <>
-                    <button
-                      onClick={prevSlide}
-                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary-50 transition-colors border border-secondary-200"
-                      aria-label="Previous doctors"
-                    >
-                      <ChevronLeft className="w-6 h-6 text-secondary-700" />
-                    </button>
-                    <button
-                      onClick={nextSlide}
-                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary-50 transition-colors border border-secondary-200"
-                      aria-label="Next doctors"
-                    >
-                      <ChevronRight className="w-6 h-6 text-secondary-700" />
-                    </button>
-                  </>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-2">
-                  <AnimatePresence mode="wait">
-                    {visibleDoctors.map((doctor, index) => (
-                      <motion.div
-                        key={`${doctor.id}-${currentIndex}`}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{
-                          duration: 0.4,
-                          delay: index * 0.1,
-                          ease: "easeInOut"
-                        }}
-                        whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                        className="bg-white rounded-2xl p-6 border border-secondary-200 hover:border-primary-300 hover:shadow-xl transition-all duration-300 cursor-pointer"
-                        onClick={() => router.push(`/doctors?id=${doctor.id}`)}
-                      >
-                        <div className="flex items-start space-x-4 mb-4">
-                          {doctor.profileImage ? (
-                            <img
-                              src={doctor.profileImage.startsWith('http') ? doctor.profileImage : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}${doctor.profileImage}`}
-                              alt={doctor.name || doctor.specialization}
-                              className="w-16 h-16 rounded-full object-cover flex-shrink-0 border-2 border-primary-200"
-                            />
-                          ) : (
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center flex-shrink-0">
-                              <span className="text-white font-semibold text-lg">
-                                {(doctor.name || doctor.specialization).charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-lg font-semibold text-secondary-900 truncate">
-                                {doctor.name || `Dr. ${doctor.specialization}`}
-                              </h3>
-                              {doctor.isVerified && (
-                                <CheckCircle className="w-5 h-5 text-primary-600 flex-shrink-0" />
-                              )}
-                            </div>
-                            <p className="text-sm text-primary-600 font-medium mb-2">
-                              {doctor.specialization}
-                            </p>
-                            <div className="flex items-center gap-4 text-xs text-secondary-600">
-                              <div className="flex items-center">
-                                <Star className="w-4 h-4 text-warning-500 fill-warning-500 mr-1" />
-                                <span className="font-medium">{Number(doctor.rating || 0).toFixed(1)}</span>
-                                <span className="ml-1">({doctor.totalReviews || 0})</span>
-                              </div>
-                              <span>•</span>
-                              <span>{doctor.experience || 0} yrs exp</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {doctor.address?.city && (
-                          <div className="flex items-center text-sm text-secondary-600 mb-3">
-                            <MapPin className="w-4 h-4 mr-1" />
-                            <span>{doctor.address.city}{doctor.address.state ? `, ${doctor.address.state}` : ''}</span>
-                          </div>
-                        )}
-
-                        {(doctor.hospital || doctor.clinic) && (
-                          <p className="text-sm text-secondary-600 mb-4 truncate">
-                            {doctor.hospital || doctor.clinic}
-                          </p>
-                        )}
-
-                        <div className="flex items-center justify-between pt-4 border-t border-secondary-200">
-                          <div>
-                            <p className="text-xs text-secondary-500">Consultation Fee</p>
-                            <p className="text-lg font-bold text-primary-600">৳{Number(doctor.consultationFee || 0).toFixed(2)}</p>
-                          </div>
-                          <Link href={`/doctors?id=${doctor.id}`}>
-                            <Button size="sm" className="text-xs px-4 py-2">
-                              View Profile
-                            </Button>
-                          </Link>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
+        {/* --- Featured Doctors --- */}
+        <section className="py-24 bg-white relative">
+          <div className="container-custom">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
+              <div className="space-y-4">
+                <div className="inline-flex items-center px-3 py-1 rounded-lg bg-primary-50 text-primary-700 text-xs font-bold uppercase tracking-wider">
+                  Verified Professionals
                 </div>
+                <h2 className="text-4xl lg:text-5xl font-black text-secondary-900 leading-tight">
+                  Meet Our <br /><span className="text-primary-600">Expert Specialists</span>
+                </h2>
+              </div>
 
+              <div className="flex items-center gap-4">
+                <Link href="/doctors">
+                  <Button variant="ghost" className="text-primary-600 font-bold hover:bg-primary-50">
+                    View All Doctors <ArrowRight className="ml-2 w-4 h-4" />
+                  </Button>
+                </Link>
                 {doctors.length > 3 && (
-                  <div className="flex justify-center items-center gap-2 mt-8">
-                    {Array.from({ length: Math.ceil(doctors.length / 3) }).map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => goToSlide(index)}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentIndex
-                          ? 'bg-primary-600 w-8'
-                          : 'bg-secondary-300 hover:bg-secondary-400'
-                          }`}
-                        aria-label={`Go to slide ${index + 1}`}
-                      />
-                    ))}
+                  <div className="flex gap-2">
+                    <button onClick={prevSlide} className="w-12 h-12 rounded-xl border border-secondary-200 flex items-center justify-center hover:bg-secondary-50 transition-colors">
+                      <ChevronLeft className="w-5 h-5 text-secondary-600" />
+                    </button>
+                    <button onClick={nextSlide} className="w-12 h-12 rounded-xl border border-secondary-200 flex items-center justify-center hover:bg-secondary-50 transition-colors">
+                      <ChevronRight className="w-5 h-5 text-secondary-600" />
+                    </button>
                   </div>
                 )}
               </div>
-
-              <div className="text-center mt-12">
-                <Link href="/doctors">
-                  <Button variant="secondary" size="lg" className="text-lg px-8 py-4">
-                    View All Doctors
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
-                </Link>
-              </div>
             </div>
-          </section>
-        )}
 
-        {/* Medicine Shop Section */}
-        <section className="py-20 bg-gradient-to-br from-white to-secondary-50">
-          <div className="container-custom">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="grid md:grid-cols-3 gap-8">
+              <AnimatePresence mode="wait">
+                {doctors.slice(currentIndex * 3, currentIndex * 3 + 3).map((doctor, index) => (
+                  <motion.div
+                    key={`${doctor.id}-${currentIndex}`}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                  >
+                    <Card hover className="overflow-hidden border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] group bg-white rounded-[2.5rem] p-4">
+                      <div className="relative aspect-square rounded-[2rem] overflow-hidden mb-6">
+                        {doctor.profileImage ? (
+                          <img
+                            src={doctor.profileImage.startsWith('http') ? doctor.profileImage : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}${doctor.profileImage}`}
+                            alt={doctor.name || doctor.specialization}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          />
+                        ) : (
+                          <ImagePlaceholder type="doctor" className="w-full h-full" />
+                        )}
+                        <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md shadow-sm border border-white/20">
+                          <div className="flex items-center gap-1">
+                            <Star className="w-3.5 h-3.5 text-warning-500 fill-warning-500" />
+                            <span className="text-xs font-bold text-secondary-900">{Number(doctor.rating || 0).toFixed(1)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="px-2 pb-4 space-y-4">
+                        <div>
+                          <h3 className="text-xl font-black text-secondary-900 group-hover:text-primary-600 transition-colors">
+                            {doctor.name || `Dr. ${doctor.specialization}`}
+                          </h3>
+                          <p className="text-primary-600 font-bold text-sm tracking-wide uppercase">{doctor.specialization}</p>
+                        </div>
+
+                        <div className="flex items-center justify-between text-sm py-4 border-y border-secondary-50">
+                          <div className="flex items-center text-secondary-500">
+                            <Award className="w-4 h-4 mr-2 text-primary-400" />
+                            <span>{doctor.experience || 0} yrs exp</span>
+                          </div>
+                          <div className="font-black text-secondary-900">
+                            ৳{Number(doctor.consultationFee || 0).toFixed(2)}
+                          </div>
+                        </div>
+
+                        <Link href={`/doctors?id=${doctor.id}`} className="block">
+                          <Button fullWidth variant="primary" className="rounded-2xl">
+                            Book Appointment
+                          </Button>
+                        </Link>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </div>
+        </section>
+
+        {/* --- Diagnostic Laboratory --- */}
+        <section className="py-24 bg-secondary-900 relative overflow-hidden">
+          {/* Futuristic Grid Background */}
+          <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+
+          <div className="container-custom relative z-10">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
               <motion.div
-                initial={{ opacity: 0, x: -50 }}
+                initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="space-y-6 order-2 md:order-1"
+                className="space-y-8"
               >
-                <h2 className="text-4xl md:text-5xl font-bold text-secondary-900">
-                  Online Medicine Shop
+                <div className="inline-flex items-center px-3 py-1 rounded-lg bg-primary-500/10 text-primary-400 text-xs font-bold uppercase tracking-wider border border-primary-500/20">
+                  Reliable Diagnostics
+                </div>
+                <h2 className="text-4xl lg:text-6xl font-black text-white leading-tight">
+                  High-Precision <br />
+                  <span className="text-primary-500">Lab Reports</span>
                 </h2>
-                <p className="text-xl text-secondary-600">
-                  Order your prescribed medications online with fast delivery. Browse through our extensive
-                  catalog of medicines, compare prices, check for drug interactions, and get your prescriptions
-                  delivered to your doorstep with secure payment processing.
+                <p className="text-xl text-secondary-400 leading-relaxed max-w-xl">
+                  Get accurate test results delivered directly to your profile. From routine blood work to advanced screenings, we partner with certified labs to bring you excellence.
                 </p>
-                <ul className="space-y-4">
-                  <li className="flex items-center text-lg text-secondary-700">
-                    <CheckCircle className="w-6 h-6 text-success-600 mr-3 flex-shrink-0" />
-                    Wide range of branded and generic medicines
-                  </li>
-                  <li className="flex items-center text-lg text-secondary-700">
-                    <CheckCircle className="w-6 h-6 text-success-600 mr-3 flex-shrink-0" />
-                    Fast and secure delivery with tracking
-                  </li>
-                  <li className="flex items-center text-lg text-secondary-700">
-                    <CheckCircle className="w-6 h-6 text-success-600 mr-3 flex-shrink-0" />
-                    Prescription verification and refill reminders
-                  </li>
-                  <li className="flex items-center text-lg text-secondary-700">
-                    <CheckCircle className="w-6 h-6 text-success-600 mr-3 flex-shrink-0" />
-                    Drug interaction checker for safety
-                  </li>
-                </ul>
-                <Link href="/medicines">
-                  <Button size="lg" className="mt-6 text-lg px-8 py-4">
-                    Shop Medicines
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
-                </Link>
+
+                <div className="flex flex-wrap gap-4 pt-4">
+                  <Link href="/labs">
+                    <Button variant="primary" size="lg" className="px-8 py-4 rounded-xl">View All Tests</Button>
+                  </Link>
+                  <Link href="/labs">
+                    <Button variant="ghost" size="lg" className="text-white hover:bg-white/10 px-8 py-4 rounded-xl">Check Lab Presence</Button>
+                  </Link>
+                </div>
               </motion.div>
 
               <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="relative order-1 md:order-2"
+                className="relative"
               >
-                <div className="relative w-full h-96 rounded-3xl overflow-hidden shadow-2xl">
-                  <Image
-                    src="/medicine-image.jpg"
-                    alt="Medicine Shop"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover"
-                  />
+                {/* Popular Tests Widget */}
+                <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[3rem] p-8 space-y-6">
+                  <p className="text-sm font-bold text-primary-500 uppercase tracking-widest">Popular Lab Packages</p>
+
+                  {[
+                    { name: 'Complete Blood Count (CBC)', price: '850', color: 'bg-red-500' },
+                    { name: 'Lipid Profile Screen', price: '1,200', color: 'bg-blue-500' },
+                    { name: 'Full Body Health Checkup', price: '4,500', color: 'bg-emerald-500' },
+                  ].map((test, i) => (
+                    <motion.div
+                      key={test.name}
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + i * 0.1 }}
+                      className="group p-6 rounded-3xl bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 transition-all flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center bg-white/5 shadow-xl")}>
+                          <FlaskConical className="w-5 h-5 text-primary-500" />
+                        </div>
+                        <div>
+                          <p className="text-white font-bold">{test.name}</p>
+                          <p className="text-secondary-500 text-xs uppercase tracking-widest mt-1">Instant Booking Available</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-primary-500 font-black text-lg">৳{test.price}</p>
+                        <p className="text-[10px] text-secondary-600 font-bold uppercase">Best Value</p>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
               </motion.div>
             </div>
           </div>
         </section>
 
-        {/* Lab Section */}
-        <LabSection />
-
-        {/* Price Transparency Section */}
-        <PriceTransparency />
-
-        {/* Lab Awareness Section */}
-        <LabAwareness />
-
-        {/* Features Section */}
-        <section className="py-20 bg-white relative overflow-hidden">
-          <div className="container-custom relative">
-            <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-5 pointer-events-none"
-              style={{ backgroundImage: 'url(/hero-image.jpg)' }}
-            ></div>
-
-            <div className="relative z-10">
-              <div className="text-center mb-16">
-                <h2 className="text-4xl md:text-5xl font-bold text-secondary-900 mb-4">
-                  Comprehensive Healthcare Features
+        {/* --- Pharmacy Shop --- */}
+        <section className="py-24 bg-gradient-to-br from-secondary-50 to-white">
+          <div className="container-custom">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="lg:order-2 space-y-8"
+              >
+                <div className="inline-flex items-center px-3 py-1 rounded-lg bg-green-50 text-green-700 text-xs font-bold uppercase tracking-wider">
+                  Medicine & Wellness
+                </div>
+                <h2 className="text-4xl lg:text-5xl font-black text-secondary-900 leading-tight">
+                  Your Reliable <br /><span className="text-green-600">e-Pharmacy Partner</span>
                 </h2>
-                <p className="text-xl text-secondary-600 max-w-3xl mx-auto">
-                  Everything you need to manage your health, all in one secure, AI-powered platform.
+                <p className="text-xl text-secondary-600 leading-relaxed max-w-xl">
+                  Order authentic medicines and healthcare essentials with doorstep delivery. Compare brand vs generic versions and manage your prescriptions online.
                 </p>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {features.map((feature, index) => {
-                  const Icon = feature.icon;
-                  return (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                      className="group"
-                    >
-                      <div className="bg-white rounded-2xl p-6 border border-secondary-200 hover:border-primary-300 hover:shadow-xl transition-all duration-300 h-full">
-                        <div className={`w-14 h-14 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                          <Icon className="w-7 h-7 text-white" />
-                        </div>
-                        <h3 className="text-xl font-bold text-secondary-900 mb-3">
-                          {feature.title}
-                        </h3>
-                        <p className="text-secondary-600 leading-relaxed">
-                          {feature.description}
-                        </p>
+                <div className="space-y-4">
+                  {[
+                    { text: 'Doorstep Delivery in 2-4 Hours', icon: Zap },
+                    { text: 'Prescription Verification System', icon: Shield },
+                    { text: 'Secure Payments & Order Tracking', icon: CreditCard },
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center">
+                        <item.icon className="w-5 h-5 text-green-600" />
                       </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
+                      <span className="font-bold text-secondary-900">{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-4">
+                  <Link href="/medicines">
+                    <Button variant="accent" size="lg" className="px-10 py-5 rounded-2xl">
+                      Explore Pharmacy
+                    </Button>
+                  </Link>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="lg:order-1 relative"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  {[1, 2].map((i) => (
+                    <div key={i} className={cn("space-y-4", i === 2 ? "mt-12" : "")}>
+                      <div className="aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-xl relative group">
+                        <ImagePlaceholder type="product" className="w-full h-full" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-6">
+                          <p className="text-white font-black text-lg">Essential Care</p>
+                          <p className="text-green-400 text-xs font-bold uppercase tracking-widest">Premium Quality</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Decorative Stats */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-[2rem] shadow-2xl space-y-2 border border-secondary-50 animate-bounce group hover:animate-none">
+                  <div className="flex items-center gap-2">
+                    <Star className="text-warning-500 fill-warning-500 w-5 h-5" />
+                    <span className="font-black text-secondary-900 text-xl">4.9/5</span>
+                  </div>
+                  <p className="text-xs font-bold text-secondary-500 uppercase tracking-tighter">Customer Satisfaction</p>
+                </div>
+              </motion.div>
             </div>
           </div>
         </section>
 
-        {/* How It Works Section */}
-        <section className="py-20 bg-black">
+        {/* --- Health Blog Section --- */}
+        <section className="py-24 bg-white">
           <div className="container-custom">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                How It Works
-              </h2>
-              <p className="text-xl text-white max-w-3xl mx-auto">
-                Get started in minutes and take control of your healthcare journey.
-              </p>
+            <div className="flex items-center justify-between mb-16">
+              <div className="space-y-4">
+                <p className="text-accent-500 font-black tracking-widest text-sm uppercase">Wellness Insights</p>
+                <h2 className="text-4xl lg:text-5xl font-black text-secondary-900">Latest from the Blog</h2>
+              </div>
+              <Link href="/blog" className="hidden md:block">
+                <Button variant="secondary" className="rounded-xl">View All Articles</Button>
+              </Link>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                { title: 'Understanding Preventative Healthcare', cat: 'Wellness', delay: 0.1 },
+                { title: 'The Role of AI in Diagnostics', cat: 'Technology', delay: 0.2 },
+                { title: 'Managing Mental Health in a Digital Age', cat: 'Health', delay: 0.3 },
+              ].map((blog) => (
+                <motion.div
+                  key={blog.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: blog.delay }}
+                >
+                  <Card hover className="p-0 border-none shadow-[0_24px_48px_-12px_rgba(0,0,0,0.05)] rounded-[2.5rem] overflow-hidden group h-full flex flex-col">
+                    <div className="relative aspect-[16/10] overflow-hidden">
+                      <ImagePlaceholder type="blog" className="w-full h-full translate-y-0 group-hover:scale-110 transition-transform duration-700" />
+                      <div className="absolute top-4 left-4 px-3 py-1 rounded-lg bg-white/90 backdrop-blur-md text-xs font-black text-secondary-900">
+                        {blog.cat}
+                      </div>
+                    </div>
+                    <div className="p-8 space-y-4 flex flex-col flex-1">
+                      <h3 className="text-xl font-black text-secondary-900 leading-tight group-hover:text-primary-600 transition-colors">
+                        {blog.title}
+                      </h3>
+                      <p className="text-secondary-500 text-sm line-clamp-3">
+                        Discover the latest trends and expert advice on maintaining your health and wellness in this comprehensive guide written by our medical specialists.
+                      </p>
+                      <div className="pt-4 mt-auto">
+                        <Link href="/blog" className="text-secondary-900 font-bold text-sm inline-flex items-center hover:gap-2 transition-all">
+                          Read Full Article <ArrowRight className="w-4 h-4 ml-1 text-primary-500" />
+                        </Link>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="mt-12 text-center md:hidden">
+              <Link href="/blog">
+                <Button variant="secondary" fullWidth size="lg">Explore All Articles</Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* --- Features Grid (Replacing old feature section) --- */}
+        <section className="py-24 bg-white relative overflow-hidden">
+          <div className="container-custom">
+            <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
+              <h2 className="text-4xl lg:text-5xl font-black text-secondary-900">Digital Health Infrastructure</h2>
+              <p className="text-xl text-secondary-600">A unified platform built for scale, security, and exceptional patient outcomes.</p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {howItWorks.map((step, index) => {
-                const Icon = step.icon;
-                return (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: index * 0.15 }}
-                    className="relative"
-                  >
-                    <div className="bg-secondary-800 rounded-2xl p-8 border border-secondary-700 hover:shadow-xl hover:border-primary-500 transition-all duration-300 text-center h-full">
-                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                        <div className="w-12 h-12 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
-                          {step.step}
-                        </div>
-                      </div>
-                      <div className="mt-6 mb-6 flex justify-center">
-                        <div className="w-16 h-16 bg-primary-600/20 rounded-xl flex items-center justify-center">
-                          <Icon className="w-8 h-8 text-primary-400" />
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-3">
-                        {step.title}
-                      </h3>
-                      <p className="text-gray-300">
-                        {step.description}
-                      </p>
-                    </div>
-                  </motion.div>
-                );
-              })}
+              {[
+                { title: 'Electronic Records', icon: FileText, desc: 'Lifetime EHR storage with secure patient-controlled access.', color: 'from-teal-500 to-emerald-500' },
+                { title: 'AI Health Analytics', icon: Brain, desc: 'Intelligent trend analysis and anomaly detection for early care.', color: 'from-cyan-500 to-blue-500' },
+                { title: 'Smart Ecosystem', icon: Users, desc: 'Connected network of pharmacies, labs, and specialists.', color: 'from-purple-500 to-indigo-500' },
+                { title: 'High-Level Security', icon: Lock, desc: 'HIPAA & GDPR compliant standards with AES-256 encryption.', color: 'from-orange-500 to-red-500' },
+              ].map((f, i) => (
+                <motion.div
+                  key={f.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="p-8 rounded-[2.5rem] bg-secondary-50 border border-secondary-100 hover:bg-white hover:shadow-2xl transition-all duration-500 group"
+                >
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${f.color} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
+                    <f.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-black text-secondary-900 mb-4">{f.title}</h3>
+                  <p className="text-secondary-600 text-sm leading-relaxed">{f.desc}</p>
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>
@@ -790,35 +762,52 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-20 bg-gradient-to-br from-secondary-900 to-secondary-800 text-white text-center">
+        {/* --- Trust Stats & Counters --- */}
+        <section className="py-24 bg-primary-600 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-full h-full opacity-10" style={{ backgroundImage: 'linear-gradient(45deg, #000 12.5%, transparent 12.5%, transparent 50%, #000 50%, #000 62.5%, transparent 62.5%, transparent 100%)', backgroundSize: '10px 10px' }}></div>
+          <div className="container-custom relative z-10 text-white">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
+              {stats.map((stat) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: stat.delay }}
+                  className="space-y-2"
+                >
+                  <div className="flex justify-center mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
+                      <stat.icon className="w-6 h-6 text-primary-200" />
+                    </div>
+                  </div>
+                  <p className="text-5xl lg:text-6xl font-black tracking-tighter">{stat.number}</p>
+                  <p className="text-primary-100 font-bold text-sm uppercase tracking-widest">{stat.label}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* --- Final CTA --- */}
+        <section className="py-24 bg-white">
           <div className="container-custom">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                Ready to Transform Your Healthcare Experience?
-              </h2>
-              <p className="text-xl text-secondary-300 mb-10 max-w-2xl mx-auto">
-                Join thousands of patients, doctors, and healthcare providers who trust Lifecare360 for their healthcare management needs.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="bg-secondary-900 rounded-[3rem] p-12 lg:p-24 text-center space-y-12 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-primary-600 translate-y-[100%] group-hover:translate-y-[95%] transition-transform duration-1000 blur-3xl opacity-50"></div>
+
+              <div className="max-w-3xl mx-auto space-y-6 relative z-10">
+                <h2 className="text-4xl lg:text-7xl font-black text-white leading-tight">Ready to take control of your health?</h2>
+                <p className="text-xl text-secondary-400">Join thousands of people who trust LifeCare360 for their medical journey. Start your free account today.</p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-6 justify-center relative z-10">
                 <Link href="/auth/register">
-                  <Button size="lg" className="px-8 py-4 bg-white text-primary-600 hover:bg-secondary-100">
-                    Get Started Free
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
+                  <Button variant="primary" size="lg" className="px-12 py-6 rounded-2xl text-xl">Create Account Now</Button>
                 </Link>
                 <Link href="/doctors">
-                  <Button variant="secondary" size="lg" className="px-8 py-4 border-white/30 text-white hover:bg-white/10">
-                    Find a Doctor
-                  </Button>
+                  <Button variant="ghost" size="lg" className="text-white hover:bg-white/10 px-12 py-6 rounded-2xl text-xl">Talk to a Specialist</Button>
                 </Link>
               </div>
-            </motion.div>
+            </div>
           </div>
         </section>
       </main>
@@ -826,4 +815,16 @@ export default function HomePage() {
       <Footer />
     </div>
   );
+}
+
+interface Doctor {
+  id: number;
+  name?: string;
+  specialization: string;
+  experience: number;
+  rating: number;
+  totalReviews: number;
+  consultationFee: number;
+  profileImage?: string;
+  isVerified: boolean;
 }

@@ -55,7 +55,7 @@ export default function AdminSidebar() {
         <div className="h-screen w-64 bg-white border-r border-secondary-200 flex flex-col hidden md:flex">
             {/* Logo Section */}
             <div className="p-6 border-b border-secondary-100 flex items-center justify-center">
-                <Logo size="lg" />
+                <Logo size="sidebar" />
             </div>
 
             {/* Navigation */}

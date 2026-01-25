@@ -17,44 +17,46 @@ interface SummaryCardsProps {
     stats: Stat[];
 }
 
+import { motion } from 'framer-motion';
+import Card from '@/components/ui/Card';
+import { cn } from '@/lib/utils';
+
 export function SummaryCards({ stats }: SummaryCardsProps) {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {stats.map((stat, idx) => {
                 const Icon = stat.icon;
                 return (
-                    <div key={stat.name} className="card hover:shadow-md transition-all duration-300">
-                        <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                                <p className="text-sm font-medium text-secondary-500">{stat.name}</p>
-                                <h3 className="text-2xl font-bold text-secondary-900 mt-2">
-                                    {stat.value.toLocaleString()}
-                                </h3>
+                    <motion.div
+                        key={stat.name}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                    >
+                        <Card className="p-8 flex items-center justify-between bg-white border border-secondary-100 shadow-soft group hover:shadow-xl transition-all duration-500 rounded-[2.5rem] relative overflow-hidden">
+                            <div className="relative z-10 space-y-2">
+                                <p className="text-[10px] font-black text-secondary-400 uppercase tracking-[0.2em]">{stat.name}</p>
+                                <p className="text-4xl font-black text-secondary-900 tracking-tighter">{stat.value.toLocaleString()}</p>
+                                <p className={cn(
+                                    "text-[10px] font-black uppercase tracking-widest",
+                                    stat.changeType === 'warning' ? 'text-error-500' : 'text-primary-500'
+                                )}>
+                                    {stat.subtitle || 'Active Inventory'}
+                                </p>
                             </div>
-                            <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                                <Icon className={`w-6 h-6 ${stat.color}`} />
+                            <div className={cn(
+                                "relative z-10 w-16 h-16 rounded-3xl flex items-center justify-center bg-gradient-to-br shadow-lg group-hover:scale-110 transition-transform duration-500",
+                                stat.bgColor.replace('bg-', 'from-').replace('-100', '-500') + ' to-' + stat.bgColor.replace('bg-', '').replace('-100', '-600')
+                            )}>
+                                <Icon className="w-8 h-8 text-white" />
                             </div>
-                        </div>
-                        <div className="mt-4 flex items-center text-sm">
-                            {stat.subtitle ? (
-                                <span className={`font-medium ${stat.changeType === 'warning' ? 'text-warning-600' : 'text-secondary-600'
-                                    }`}>
-                                    {stat.subtitle}
-                                </span>
-                            ) : (
-                                <>
-                                    <span className={`font-medium flex items-center gap-1 ${stat.changeType === 'increase'
-                                        ? 'text-success-600'
-                                        : 'text-secondary-500'
-                                        }`}>
-                                        {stat.changeType === 'increase' && <TrendingUp className="w-4 h-4" />}
-                                        {stat.change > 0 ? '+' : ''}{stat.change}%
-                                    </span>
-                                    <span className="text-secondary-400 ml-2">from yesterday</span>
-                                </>
-                            )}
-                        </div>
-                    </div>
+
+                            {/* Subtle Watermark */}
+                            <div className="absolute -bottom-4 -left-4 opacity-5 group-hover:opacity-10 transition-opacity rotate-12">
+                                <Icon className="w-24 h-24" />
+                            </div>
+                        </Card>
+                    </motion.div>
                 );
             })}
         </div>

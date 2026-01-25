@@ -4,54 +4,69 @@ import React from 'react';
 import Card from '@/components/ui/Card';
 import { Sparkles, ArrowRight, BrainCircuit, Activity } from 'lucide-react';
 
+import { motion } from 'framer-motion';
+import Button from '@/components/ui/Button'; // Added this import for the new Button component
+
 export default function AIInsights() {
     return (
-        <Card className="bg-gradient-to-br from-indigo-600 to-violet-700 text-white border-none shadow-lg shadow-indigo-500/20 relative overflow-hidden">
-            {/* Background decoration */}
-            <div className="absolute top-0 right-0 p-8 opacity-10">
-                <BrainCircuit className="w-32 h-32 text-white" />
-            </div>
+        <Card className="bg-gradient-to-br from-secondary-800 to-secondary-900 text-white border-none shadow-xl relative overflow-hidden rounded-[2.5rem] p-8">
+            {/* Animated Background Decor */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary-500/20 rounded-full blur-3xl animate-pulse"></div>
 
             <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                        <Sparkles className="w-4 h-4 text-amber-300" />
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/10">
+                        <Sparkles className="w-5 h-5 text-primary-400" />
                     </div>
-                    <h2 className="text-lg font-bold">AI Health Insights</h2>
+                    <div>
+                        <h2 className="text-xl font-black tracking-tight leading-none uppercase text-xs text-primary-400 mb-1">AI Diagnostics</h2>
+                        <h2 className="text-lg font-black text-white leading-none">Smart Health Insights</h2>
+                    </div>
                 </div>
 
                 <div className="space-y-4">
-                    <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/10">
-                        <div className="flex items-start gap-3">
-                            <Activity className="w-5 h-5 text-amber-300 mt-0.5" />
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/5 group hover:bg-white/10 transition-all cursor-pointer"
+                    >
+                        <div className="flex items-start gap-4">
+                            <div className="w-1 h-12 bg-accent-500 rounded-full group-hover:h-14 transition-all" />
                             <div>
-                                <h3 className="font-semibold text-sm text-white mb-1">Attention Required</h3>
-                                <p className="text-xs text-indigo-100 leading-relaxed">
-                                    Your Hb% levels (11.2 g/dL) are slightly lower than last month. Consider increasing iron-rich foods like spinach and lentils.
+                                <h3 className="font-black text-sm text-accent-400 uppercase tracking-widest mb-1">Attention Required</h3>
+                                <p className="text-sm text-secondary-200 leading-relaxed font-medium">
+                                    Your Hb% levels (11.2 g/dL) are slightly lower than last month. Consider increasing iron-rich foods.
                                 </p>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
 
-                    <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/10">
-                        <div className="flex items-start gap-3">
-                            <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-300 font-bold text-xs">
-                                ↑
-                            </div>
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/5 group hover:bg-white/10 transition-all cursor-pointer"
+                    >
+                        <div className="flex items-start gap-4">
+                            <div className="w-1 h-12 bg-primary-500 rounded-full group-hover:h-14 transition-all" />
                             <div>
-                                <h3 className="font-semibold text-sm text-white mb-1">Good Progress!</h3>
-                                <p className="text-xs text-indigo-100 leading-relaxed">
+                                <h3 className="font-black text-sm text-primary-400 uppercase tracking-widest mb-1">Good Progress!</h3>
+                                <p className="text-sm text-secondary-200 leading-relaxed font-medium">
                                     Your BMI has improved by 0.5 points this month. Keep up the daily walking routine!
                                 </p>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
 
-                <button className="mt-6 w-full py-2.5 bg-white text-indigo-700 font-semibold rounded-xl text-sm hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2 group">
-                    View Full Health Analysis
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
+                <Button
+                    fullWidth
+                    variant="primary"
+                    className="mt-8 rounded-2xl py-4 font-black text-xs uppercase tracking-widest bg-white text-secondary-900 hover:bg-secondary-50 shadow-[0_20px_40px_rgba(255,255,255,0.1)]"
+                    rightIcon={<ArrowRight className="w-4 h-4" />}
+                >
+                    Full Health Analysis
+                </Button>
             </div>
         </Card>
     );

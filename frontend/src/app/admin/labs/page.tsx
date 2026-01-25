@@ -62,6 +62,21 @@ export default function LabsPage() {
         }
     };
 
+    const handleVerifyUser = async (lab: any) => {
+        if (!confirm(`Are you sure you want to manually verify ${lab.email}?`)) return;
+        setActionLoading(lab._id);
+        try {
+            await api.patch(`/api/admin/users/${lab._id}/verify`);
+            toast.success(`User verified successfully`);
+            fetchLabs();
+        } catch (error) {
+            toast.error('Failed to verify user');
+            console.error(error);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     const confirmDelete = async () => {
         if (!selectedLab) return;
         setActionLoading(selectedLab._id);
@@ -203,6 +218,16 @@ export default function LabsPage() {
                                             </td>
                                             <td className="py-3 px-4 text-right">
                                                 <div className="flex justify-end gap-2">
+                                                    {!lab.isEmailVerified && (
+                                                        <button
+                                                            onClick={() => handleVerifyUser(lab)}
+                                                            className="p-1.5 text-secondary-400 hover:text-success-600 hover:bg-success-50 rounded-lg transition-colors"
+                                                            title="Verify User Manually"
+                                                            disabled={actionLoading === lab._id}
+                                                        >
+                                                            <UserCheck className="w-4 h-4" />
+                                                        </button>
+                                                    )}
                                                     <button
                                                         onClick={() => {
                                                             setSelectedLab(lab);
@@ -211,7 +236,7 @@ export default function LabsPage() {
                                                         className="p-1.5 text-secondary-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                                                         title="Reset Password"
                                                     >
-                                                        <UserCheck className="w-4 h-4" />
+                                                        <Shield className="w-4 h-4" /> {/* Changed Icon to distinguish from Verify */}
                                                     </button>
                                                     <button
                                                         onClick={() => handleToggleStatus(lab)}

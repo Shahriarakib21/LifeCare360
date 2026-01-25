@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
+import Logo from '@/components/common/Logo';
 
 const menuItems = [
     { id: 'overview', icon: LayoutDashboard, label: 'Dashboard Overview', href: '/lab/dashboard' },
@@ -44,18 +45,8 @@ const LabSidebar = () => {
     return (
         <aside className="fixed top-0 left-0 h-screen w-64 bg-[#0a0f1d] border-r border-white/10 z-50 flex flex-col">
             {/* Brand */}
-            <div className="h-20 flex items-center px-8">
-                <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-violet-500 p-0.5 flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.3)]">
-                        <div className="w-full h-full rounded-[10px] bg-[#0a0f1d] flex items-center justify-center">
-                            <Activity className="w-6 h-6 text-cyan-400" />
-                        </div>
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-black text-white tracking-tight">HEALTHCARE</h1>
-                        <p className="text-[10px] text-cyan-400 font-bold tracking-widest uppercase">Laboratory</p>
-                    </div>
-                </div>
+            <div className="h-20 flex items-center justify-center px-6 border-b border-white/5">
+                <Logo size="sidebar" theme="dark" />
             </div>
 
             {/* Navigation */}

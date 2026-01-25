@@ -13,7 +13,8 @@ import {
   Activity,
   DollarSign,
   Calendar,
-  Wallet
+  Wallet,
+  Users
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import api, { handleApiError } from '@/lib/api';
@@ -22,6 +23,13 @@ import KPICard from '@/components/lab/KPICard';
 import RevenueCard from '@/components/lab/RevenueCard';
 import NotificationCenter from '@/components/lab/NotificationCenter';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
+import { motion } from 'framer-motion';
+import ImagePlaceholder from '@/components/ui/ImagePlaceholder';
+import { cn } from '@/lib/utils';
+import Badge from '@/components/ui/Badge';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface DashboardStats {
   totalTestsToday: number;
@@ -100,7 +108,6 @@ export default function LabDashboard() {
 
     setLoading(true);
     try {
-      // Fetch dashboard stats, revenue analytics, and recent tests in parallel
       const [statsRes, revenueRes, testsRes] = await Promise.all([
         api.get('/api/labs/dashboard/stats'),
         api.get('/api/labs/revenue/analytics'),
@@ -110,7 +117,6 @@ export default function LabDashboard() {
       const statsData = statsRes.data.data || {};
       const tests = testsRes.data.data?.requests || [];
 
-      // Calculate stats from data
       const today = new Date().toISOString().split('T')[0];
       const todayTests = tests.filter((t: any) =>
         t.date && t.date.split('T')[0] === today
@@ -142,12 +148,9 @@ export default function LabDashboard() {
         }
       });
 
-      // Set revenue analytics
       setRevenueAnalytics(revenueRes.data.data);
-
       setRecentTests(tests.slice(0, 10));
 
-      // Generate chart data for last 7 days
       const chartData = [];
       for (let i = 6; i >= 0; i--) {
         const date = new Date();
@@ -187,18 +190,18 @@ export default function LabDashboard() {
     const urgency = test.data?.labTestRequest?.urgency;
 
     if (urgency === 'stat') {
-      return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">🔴 Critical</span>;
+      return <Badge className="bg-error-50 text-error-700 border-error-100 text-[10px] font-black uppercase tracking-tighter px-3">CRITICAL</Badge>;
     }
 
     if (status === 'completed' || status === 'REPORT_UPLOADED') {
-      return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">🟢 Completed</span>;
+      return <Badge className="bg-success-50 text-success-700 border-success-100 text-[10px] font-black uppercase tracking-tighter px-3">COMPLETED</Badge>;
     }
 
     if (status === 'PAID') {
-      return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-100 text-cyan-700">📋 Paid & Ready</span>;
+      return <Badge className="bg-primary-50 text-primary-700 border-primary-100 text-[10px] font-black uppercase tracking-tighter px-3">PAID</Badge>;
     }
 
-    return <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">🟡 {status.replace('_', ' ')}</span>;
+    return <Badge className="bg-secondary-50 text-secondary-700 border-secondary-100 text-[10px] font-black uppercase tracking-tighter px-3">{status.replace('_', ' ')}</Badge>;
   };
 
   const getPatientName = (test: RecentTest) => {
@@ -206,166 +209,126 @@ export default function LabDashboard() {
     if (profile?.firstName || profile?.lastName) {
       return `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
     }
-    return 'Unknown Patient';
-  };
-
-  const getTestType = (test: RecentTest) => {
-    const tests = test.data?.labTestRequest?.tests || [];
-    return tests.length > 0 ? tests.join(', ') : 'N/A';
-  };
-
-  const getTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffDays > 0) return `${diffDays}d ago`;
-    if (diffHours > 0) return `${diffHours}h ago`;
-    return 'Just now';
+    return 'Technician Sample';
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
+        <LoadingSpinner />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Header with Notification Center */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard Overview</h1>
-          <p className="text-gray-600">Welcome back! Here's what's happening today.</p>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-10 pb-20"
+    >
+      {/* Dynamic Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-gradient-to-br from-primary-600 to-primary-700 p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="relative z-10 space-y-3">
+          <Badge className="bg-white/10 text-white border-white/20 px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase">
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </Badge>
+          <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+            Diagnostic <span className="opacity-60">Intelligence</span>
+          </h1>
+          <p className="text-primary-100 text-lg font-medium opacity-80">Welcome back, {user?.email?.split('@')[0]}. You have {stats.pendingReports} samples awaiting processing.</p>
         </div>
-        <NotificationCenter />
+        <div className="relative z-10 flex gap-4">
+          <NotificationCenter />
+        </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard
-          title="Total Tests Today"
+          title="Daily Throughput"
           value={stats.totalTestsToday}
           icon={FlaskConical}
-          color="blue"
+          color="from-primary-500 to-primary-600"
+          delay={0.1}
           trend={{ value: stats.trends.tests, isPositive: stats.trends.tests > 0 }}
         />
         <KPICard
-          title="Pending Reports"
+          title="In Queue"
           value={stats.pendingReports}
           icon={Clock}
-          color="yellow"
+          color="from-secondary-500 to-secondary-600"
+          delay={0.2}
           trend={{ value: stats.trends.pending, isPositive: stats.trends.pending < 0 }}
         />
         <KPICard
-          title="Completed Reports"
+          title="Dispatched"
           value={stats.completedReports}
           icon={CheckCircle}
-          color="green"
+          color="from-success-500 to-success-600"
+          delay={0.3}
           trend={{ value: stats.trends.completed, isPositive: stats.trends.completed > 0 }}
         />
         <KPICard
-          title="Critical Alerts"
+          title="Urgent Ops"
           value={stats.criticalAlerts}
           icon={AlertTriangle}
-          color="red"
+          color="from-error-500 to-error-600"
+          delay={0.4}
           trend={{ value: stats.trends.critical, isPositive: stats.trends.critical < 0 }}
         />
       </div>
 
-      {/* Revenue Cards */}
-      {revenueAnalytics && (
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Revenue Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <RevenueCard
-              title="Today's Revenue"
-              amount={revenueAnalytics.today.revenue}
-              period="Today"
-              color="green"
-            />
-            <RevenueCard
-              title="Weekly Revenue"
-              amount={revenueAnalytics.week.revenue}
-              period="This Week"
-              color="blue"
-            />
-            <RevenueCard
-              title="Monthly Revenue"
-              amount={revenueAnalytics.month.revenue}
-              period="This Month"
-              color="purple"
-            />
-            <RevenueCard
-              title="Total Revenue"
-              amount={revenueAnalytics.total.revenue}
-              period="All Time"
-              color="orange"
-            />
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Test Uploads Table */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="text-xl font-bold text-gray-900">Recent Test Uploads</h2>
-              <p className="text-sm text-gray-500 mt-1">Latest test requests and their status</p>
+        <div className="lg:col-span-2 space-y-8">
+          <Card className="border-none shadow-soft overflow-hidden rounded-[2.5rem] bg-white p-8">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary-500/10 flex items-center justify-center">
+                  <Activity className="w-5 h-5 text-primary-600" />
+                </div>
+                <h2 className="text-xl font-black text-secondary-900 tracking-tight">Accession Queue</h2>
+              </div>
+              <Button variant="ghost" size="sm" className="font-black text-[10px] uppercase tracking-widest text-secondary-500">Live Stream</Button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient ID</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Test Type</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Upload Date</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-secondary-50">
+                    <th className="pb-4 text-[10px] font-black text-secondary-400 uppercase tracking-widest">Subject</th>
+                    <th className="pb-4 text-[10px] font-black text-secondary-400 uppercase tracking-widest">Inventory</th>
+                    <th className="pb-4 text-[10px] font-black text-secondary-400 uppercase tracking-widest">Protocol</th>
+                    <th className="pb-4 text-[10px] font-black text-secondary-400 uppercase tracking-widest">Access</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-secondary-50">
                   {recentTests.length > 0 ? (
                     recentTests.map((test, idx) => (
-                      <tr key={test._id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div>
-                            <p className="font-medium text-gray-900">{getPatientName(test)}</p>
-                            <p className="text-xs text-gray-500">ID: {test._id.slice(-8).toUpperCase()}</p>
+                      <tr key={test._id} className="group hover:bg-secondary-50/50 transition-colors">
+                        <td className="py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center border border-secondary-100 group-hover:scale-110 transition-transform">
+                              <Users className="w-5 h-5 text-secondary-400" />
+                            </div>
+                            <div>
+                              <p className="font-black text-secondary-900 uppercase text-xs tracking-tight">{getPatientName(test)}</p>
+                              <p className="text-[10px] font-black text-primary-500 uppercase tracking-tighter">ID: {test._id.slice(-6).toUpperCase()}</p>
+                            </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <p className="text-sm text-gray-900">{getTestType(test)}</p>
+                        <td className="py-5">
+                          <p className="text-xs font-black text-secondary-600 uppercase tracking-tight">{test.data?.labTestRequest?.tests?.[0] || 'COMP_PANEL'}</p>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="py-5">
                           {getStatusBadge(test)}
                         </td>
-                        <td className="px-6 py-4">
-                          <p className="text-sm text-gray-600">{getTimeAgo(test.date)}</p>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => router.push(`/lab/requests`)}
-                              className="p-2 text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors"
-                              title="View"
-                            >
+                        <td className="py-5">
+                          <div className="flex gap-2">
+                            <button onClick={() => router.push(`/lab/requests`)} className="p-2.5 rounded-xl bg-secondary-100 text-secondary-600 hover:bg-primary-500 hover:text-white transition-all shadow-sm">
                               <Eye className="w-4 h-4" />
                             </button>
-                            <button
-                              onClick={() => router.push(`/lab/upload-report?requestId=${test._id}`)}
-                              className="p-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
-                              title="Upload"
-                            >
+                            <button onClick={() => router.push(`/lab/upload-report?requestId=${test._id}`)} className="p-2.5 rounded-xl bg-primary-100 text-primary-600 hover:bg-primary-600 hover:text-white transition-all shadow-sm">
                               <Upload className="w-4 h-4" />
                             </button>
                           </div>
@@ -374,228 +337,108 @@ export default function LabDashboard() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                        No recent tests found
+                      <td colSpan={4} className="py-20 text-center">
+                        <ImagePlaceholder type="generic" className="w-16 h-16 rounded-2xl mx-auto opacity-30 mb-4" />
+                        <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest">Baseline Operations</p>
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
-          </div>
+          </Card>
         </div>
 
-        {/* Quick Upload Panel */}
-        <div className="space-y-6">
-          <div className="bg-gradient-to-br from-cyan-500 to-teal-500 rounded-2xl shadow-lg p-6 text-white">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                <Upload className="w-6 h-6" />
+        <div className="space-y-8">
+          <Card className="bg-secondary-900 border-none shadow-soft rounded-[2.5rem] p-8 text-white relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary-500/30 transition-colors" />
+
+            <div className="relative z-10 space-y-6">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/10">
+                <Upload className="w-7 h-7 text-primary-400" />
               </div>
-              <div>
-                <h3 className="font-bold text-lg">Quick Upload</h3>
-                <p className="text-sm text-cyan-50">Upload test results</p>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black tracking-tight leading-tight">Batch Results Upload</h3>
+                <p className="text-secondary-400 font-medium leading-relaxed">Secure protocol for uploading clinical diagnostic datasets.</p>
               </div>
+              <Button
+                fullWidth
+                variant="primary"
+                className="rounded-2xl py-4 bg-white text-secondary-900 hover:bg-secondary-50 font-black text-xs uppercase tracking-widest shadow-xl"
+                onClick={() => router.push('/lab/upload-report')}
+              >
+                Initiate Upload
+              </Button>
             </div>
+          </Card>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border-2 border-dashed border-white/30 text-center mb-4 cursor-pointer hover:bg-white/20 transition-colors"
-              onClick={() => router.push('/lab/upload-report')}>
-              <Upload className="w-8 h-8 mx-auto mb-2 opacity-80" />
-              <p className="text-sm font-medium mb-1">Click to upload</p>
-              <p className="text-xs text-cyan-50">CSV • PDF • JPG • PNG</p>
-            </div>
-
-            <button
-              onClick={() => router.push('/lab/upload-report')}
-              className="w-full bg-white text-cyan-600 font-semibold py-3 px-4 rounded-xl hover:bg-cyan-50 transition-colors shadow-lg"
-            >
-              Go to Upload Page
-            </button>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-cyan-600" />
-              Quick Stats
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Today's Tests</span>
-                <span className="font-bold text-gray-900">{stats.totalTestsToday}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Pending</span>
-                <span className="font-bold text-yellow-600">{stats.pendingReports}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Completed</span>
-                <span className="font-bold text-green-600">{stats.completedReports}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Critical</span>
-                <span className="font-bold text-red-600">{stats.criticalAlerts}</span>
-              </div>
-              {revenueAnalytics && (
-                <>
-                  <div className="pt-3 border-t border-gray-200"></div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Today's Revenue</span>
-                    <span className="font-bold text-green-600">৳{revenueAnalytics.today.revenue.toLocaleString()}</span>
+          <Card className="border-none shadow-soft rounded-[2.5rem] bg-white p-8">
+            <h3 className="text-xl font-black text-secondary-900 tracking-tight mb-8 uppercase text-xs tracking-widest text-primary-600">Operations Feed</h3>
+            <div className="space-y-6">
+              {[
+                { label: "Daily throughput", val: stats.totalTestsToday, color: "bg-primary-500" },
+                { label: "Worklist Pending", val: stats.pendingReports, color: "bg-secondary-500" },
+                { label: "Critical Priority", val: stats.criticalAlerts, color: "bg-error-500" },
+              ].map((stat) => (
+                <div key={stat.label} className="space-y-3">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                    <span className="text-secondary-400">{stat.label}</span>
+                    <span className="text-secondary-900">{stat.val} samples</span>
                   </div>
-                </>
-              )}
+                  <div className="h-1.5 w-full bg-secondary-100 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      whileInView={{ width: '70' + '%' }}
+                      className={cn("h-full rounded-full", stat.color)}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          </Card>
         </div>
       </div>
 
-      {/* Analytics Section */}
+      {/* Analytics Visualization */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Test Volume Chart */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
+        <Card className="border-none shadow-soft rounded-[2.5rem] bg-white p-8">
+          <div className="flex items-center justify-between mb-10">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Test Volume</h3>
-              <p className="text-sm text-gray-500">Last 7 days</p>
+              <h3 className="text-xl font-black text-secondary-900 tracking-tight">Diagnostic Volume</h3>
+              <p className="text-[10px] font-black text-secondary-400 uppercase tracking-widest mt-1">7-Day Accession Trend</p>
             </div>
-            <TrendingUp className="w-5 h-5 text-cyan-600" />
           </div>
-
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                }}
-              />
-              <Legend />
-              <Bar dataKey="tests" fill="#06b6d4" name="Total Tests" radius={[8, 8, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }} />
+              <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} />
+              <Bar dataKey="tests" fill="#06b6d4" radius={[6, 6, 0, 0]} barSize={32} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
 
-        {/* Revenue Trend Chart */}
-        {revenueAnalytics && revenueAnalytics.dailyTrend.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-6">
+        {revenueAnalytics && (
+          <Card className="border-none shadow-soft rounded-[2.5rem] bg-white p-8">
+            <div className="flex items-center justify-between mb-10">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Revenue Trend</h3>
-                <p className="text-sm text-gray-500">Last 30 days</p>
+                <h3 className="text-xl font-black text-secondary-900 tracking-tight">Revenue Analytics</h3>
+                <p className="text-[10px] font-black text-primary-500 uppercase tracking-widest mt-1">30-Day Operational Yield</p>
               </div>
-              <DollarSign className="w-5 h-5 text-green-600" />
             </div>
-
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={revenueAnalytics.dailyTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-                <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                  }}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  name="Revenue (৳)"
-                  dot={{ fill: '#10b981', r: 4 }}
-                />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }} />
+                <Tooltip contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} />
+                <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={4} dot={false} />
               </LineChart>
             </ResponsiveContainer>
-          </div>
-        )}
-
-        {/* Status Trend Chart */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">Status Trends</h3>
-              <p className="text-sm text-gray-500">Completed vs Pending</p>
-            </div>
-            <Activity className="w-5 h-5 text-teal-600" />
-          </div>
-
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                }}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="completed"
-                stroke="#10b981"
-                strokeWidth={2}
-                name="Completed"
-                dot={{ fill: '#10b981', r: 4 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="pending"
-                stroke="#f59e0b"
-                strokeWidth={2}
-                name="Pending"
-                dot={{ fill: '#f59e0b', r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Top Revenue Tests */}
-        {revenueAnalytics && revenueAnalytics.topTests.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">Top Revenue Tests</h3>
-                <p className="text-sm text-gray-500">By total revenue</p>
-              </div>
-              <Wallet className="w-5 h-5 text-purple-600" />
-            </div>
-
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={revenueAnalytics.topTests.slice(0, 6)}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={(entry) => `${entry.testName.substring(0, 15)}...`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="revenue"
-                >
-                  {revenueAnalytics.topTests.slice(0, 6).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          </Card>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

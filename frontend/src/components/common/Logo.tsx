@@ -5,86 +5,86 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { cn } from '@/lib/utils';
 
 interface LogoProps {
-    size?: 'sm' | 'md' | 'lg';
+    size?: 'sm' | 'md' | 'lg' | 'xl' | 'header' | 'auth' | 'sidebar' | 'footer';
+    variant?: 'square' | 'horizontal';
+    theme?: 'light' | 'dark' | 'none'; // 'dark' theme means logo for dark background (displays white)
     className?: string;
     showText?: boolean;
     textClassName?: string;
 }
 
-const sizeConfig = {
-    sm: { width: 140, height: 45, textSize: 'text-base' },
-    md: { width: 200, height: 70, textSize: 'text-xl' },
-    lg: { width: 280, height: 95, textSize: 'text-2xl' },
-};
-
 const Logo: React.FC<LogoProps> = ({
     size = 'md',
+    variant = 'square',
+    theme = 'none',
     className = '',
     showText = false,
     textClassName = ''
 }) => {
     const router = useRouter();
     const { user, isAuthenticated } = useAuthStore();
-    const config = sizeConfig[size];
 
-    // Determine home route based on user role
     const getHomeRoute = () => {
-        if (!isAuthenticated || !user) {
-            return '/';
-        }
-
-        switch (user.role) {
-            case 'patient':
-                return '/patient/dashboard';
-            case 'doctor':
-                return '/doctor/dashboard';
-            case 'lab':
-                return '/lab/dashboard';
-            case 'pharmacy':
-                return '/pharmacy/dashboard';
-            case 'admin':
-                return '/admin/dashboard';
-            default:
-                return '/';
-        }
+        if (!isAuthenticated || !user) return '/';
+        const routes: Record<string, string> = {
+            patient: '/patient/dashboard',
+            doctor: '/doctor/dashboard',
+            lab: '/lab/dashboard',
+            pharmacy: '/pharmacy/dashboard',
+            admin: '/admin/dashboard',
+            hospital: '/hospital/dashboard',
+            insurance: '/insurance/dashboard',
+        };
+        return routes[user.role] || '/';
     };
 
     const homeRoute = getHomeRoute();
 
-    const handleClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        router.push(homeRoute);
+    // Map standardized sizes to Tailwind classes or style objects
+    const sizeClasses = {
+        sm: 'h-8',
+        md: 'h-12',
+        lg: 'h-16',
+        xl: 'h-24',
+        header: 'h-8 md:h-11', // Mobile 32px, Desktop 44px
+        auth: 'h-12 md:h-18',   // Mobile 48px, Desktop 72px
+        sidebar: 'w-full max-w-[120px]',
+        footer: 'h-6 md:h-7',   // 24-28px
     };
 
     return (
         <Link
             href={homeRoute}
-            onClick={handleClick}
-            className={`flex items-center gap-2 transition-all duration-200 hover:opacity-90 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg ${className}`}
-            aria-label="Navigate to home"
-            tabIndex={0}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    router.push(homeRoute);
-                }
-            }}
+            className={cn(
+                "flex items-center gap-3 transition-all duration-300 hover:scale-[1.02] active:scale-95 focus:outline-none rounded-xl p-1",
+                className
+            )}
+            aria-label="LifeCare360 Home"
         >
-            <div className="relative flex-shrink-0" style={{ width: config.width, height: config.height }}>
+            <div className={cn("relative flex-shrink-0", sizeClasses[size as keyof typeof sizeClasses])}>
                 <Image
-                    src="/Lifecare360.png"
-                    alt="Lifecare360 - Healthcare Platform Logo"
-                    fill
-                    sizes={`${config.width}px`}
+                    src={variant === 'horizontal' ? '/logo_horizontal.png' : '/logo_square.png'}
+                    alt="LifeCare360 Logo"
+                    width={500}
+                    height={500}
                     priority
-                    className="object-contain"
+                    className={cn(
+                        "object-contain w-auto h-full transition-all duration-300",
+                        theme === 'dark' && "brightness-0 invert",
+                        theme === 'light' && "brightness-0",
+                    )}
                 />
             </div>
             {showText && (
-                <span className={`font-bold text-primary-600 ${config.textSize} hidden lg:block ${textClassName}`}>
-                    Lifecare360
+                <span className={cn(
+                    "font-bold text-primary-600 tracking-tight",
+                    size === 'sm' || size === 'footer' ? 'text-lg' : 'text-xl',
+                    textClassName
+                )}>
+                    LifeCare360
                 </span>
             )}
         </Link>

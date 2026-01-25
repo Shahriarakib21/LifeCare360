@@ -11,16 +11,16 @@ export default function AdminLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { user, isAuthenticated, loading } = useAuthStore();
+    const { user, isAuthenticated, isInitialized } = useAuthStore();
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading && (!isAuthenticated || user?.role !== 'admin')) {
+        if (isInitialized && (!isAuthenticated || user?.role !== 'admin')) {
             router.push('/auth/login');
         }
-    }, [isAuthenticated, user, router, loading]);
+    }, [isAuthenticated, user, router, isInitialized]);
 
-    if (loading) {
+    if (!isInitialized) {
         return <div className="flex h-screen items-center justify-center">Loading...</div>;
     }
 

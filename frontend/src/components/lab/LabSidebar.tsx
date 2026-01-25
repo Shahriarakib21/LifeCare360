@@ -36,23 +36,23 @@ export default function LabSidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 z-[60] flex flex-col",
+        "fixed left-0 top-0 h-screen bg-secondary-900 transition-all duration-500 z-[60] flex flex-col shadow-2xl",
         isExpanded ? "w-64" : "w-20"
       )}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
       {/* Logo Section */}
-      <div className="h-[72px] flex items-center justify-center border-b border-gray-200 px-4">
+      <div className="h-[80px] flex items-center justify-center border-b border-white/5 px-4 bg-white/5 backdrop-blur-xl">
         {isExpanded ? (
-          <Logo size="lg" />
+          <Logo size="sidebar" />
         ) : (
           <Logo size="sm" />
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-6 px-3 space-y-2 overflow-y-auto">
+      <nav className="flex-1 py-8 px-4 space-y-3 overflow-y-auto custom-scrollbar">
         {menuItems.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
           const Icon = item.icon;
@@ -62,23 +62,23 @@ export default function LabSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative",
+                "flex items-center gap-4 px-4 py-3.5 rounded-[1.25rem] transition-all duration-300 group relative",
                 isActive
-                  ? "bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-lg shadow-cyan-500/30"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  ? "bg-primary-500 text-white shadow-xl shadow-primary-500/20"
+                  : "text-secondary-400 hover:bg-white/5 hover:text-white"
               )}
             >
               <Icon className={cn(
-                "w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110",
+                "w-5 h-5 flex-shrink-0 transition-transform duration-500 group-hover:scale-110",
                 isActive && "drop-shadow-sm"
               )} />
               {isExpanded && (
-                <span className="font-medium text-sm whitespace-nowrap">{item.label}</span>
+                <span className="font-black text-[10px] uppercase tracking-widest whitespace-nowrap overflow-hidden transition-all duration-300">{item.label}</span>
               )}
 
               {/* Active indicator */}
               {isActive && !isExpanded && (
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-cyan-500 to-teal-500 rounded-l-full" />
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-primary-500 rounded-l-full shadow-[0_0_15px_rgba(6,182,212,0.8)]" />
               )}
             </Link>
           );
@@ -86,18 +86,18 @@ export default function LabSidebar() {
       </nav>
 
       {/* Expand/Collapse Toggle */}
-      <div className="p-3 border-t border-gray-200">
+      <div className="p-4 border-t border-white/5">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors"
+          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-2xl text-secondary-500 hover:bg-white/5 hover:text-white transition-all group"
         >
           {isExpanded ? (
             <>
-              <ChevronLeft className="w-4 h-4" />
-              <span className="text-sm font-medium">Collapse</span>
+              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Minimize</span>
             </>
           ) : (
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           )}
         </button>
       </div>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import Logo from '@/components/common/Logo';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -27,14 +27,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Initialize auth store from localStorage
+  // Initialize auth store
   useEffect(() => {
     if (typeof window !== 'undefined') {
       initialize();
     }
   }, [initialize]);
 
-  // Handle redirect
+  // Role-based redirection logic
   useEffect(() => {
     if (typeof window === 'undefined' || redirectAttemptedRef.current) return;
 
@@ -51,16 +51,14 @@ export default function LoginPage() {
       };
 
       const dashboardPath = roleRoutes[user.role] || '/';
-      setTimeout(() => {
-        router.push(dashboardPath);
-      }, 100);
+      router.push(dashboardPath);
     }
   }, [isAuthenticated, user, router]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.email) newErrors.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email address';
     if (!formData.password) newErrors.password = 'Password is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -74,7 +72,7 @@ export default function LoginPage() {
     try {
       const loginApi = axios.create({
         baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001',
-        timeout: 5000,
+        timeout: 10000,
         headers: { 'Content-Type': 'application/json' },
       });
 
@@ -87,17 +85,16 @@ export default function LoginPage() {
       };
 
       if (!normalizedUser || !normalizedUser.role) {
-        toast.error('Invalid user data received');
-        return;
+        throw new Error('Invalid user data received');
       }
 
       setAuth(normalizedUser, token);
-      toast.success('Login successful!');
+      toast.success('Welcome back to LifeCare360!');
     } catch (error: any) {
       const errorMessage = handleApiError(error);
       if (errorMessage.includes('MFA')) {
         setShowMFA(true);
-        toast.error('MFA code required');
+        toast.error('Multi-factor authentication required');
       } else {
         toast.error(errorMessage);
       }
@@ -107,37 +104,66 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative">
-      <div
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/auth-bg.jpg)' }}
-      >
-        <div className="absolute inset-0 bg-black/50"></div>
-      </div>
-
-      <div className="relative z-10 flex flex-col min-h-screen">
-        <div className="flex justify-center items-center pt-8 pb-4">
-          <Logo showText={true} textClassName="text-white" />
+    <div className="min-h-screen grid lg:grid-cols-2">
+      {/* Visual Identity Section */}
+      <div className="hidden lg:flex flex-col justify-between p-12 bg-primary-900 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-primary-400 blur-[100px]" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-teal-400 blur-[100px]" />
         </div>
 
-        <main className="flex-1 flex items-center justify-center py-12 px-4">
-          <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border-white/20" padding="lg">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-              <p className="text-white/90">Sign in to your HealthLife account</p>
-            </div>
+        <div className="relative z-10">
+          <Logo size="xl" variant="horizontal" theme="dark" />
+        </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="relative z-10 space-y-6">
+          <h2 className="text-5xl font-bold text-white leading-tight">
+            Universal Health Access <br />
+            <span className="text-primary-300">Simplified for You.</span>
+          </h2>
+          <p className="text-xl text-primary-100/80 max-w-lg">
+            Join the ecosystem connecting patients, doctors, labs, and pharmacies in one unified digital experience.
+          </p>
+          <div className="flex gap-4 pt-4">
+            <div className="bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10">
+              <span className="block text-2xl font-bold text-white">10k+</span>
+              <span className="text-sm text-primary-200 uppercase tracking-wider">Patients</span>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10">
+              <span className="block text-2xl font-bold text-white">500+</span>
+              <span className="text-sm text-primary-200 uppercase tracking-wider">Doctors</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-10 text-primary-300 text-sm italic">
+          © 2026 LifeCare360 Ecosystem. All rights reserved.
+        </div>
+      </div>
+
+      {/* Authentication Section */}
+      <div className="flex items-center justify-center p-6 bg-white sm:p-12 lg:bg-slate-50">
+        <div className="w-full max-w-md space-y-8 animate-fade-in">
+          <div className="flex flex-col items-center text-center">
+            <div className="mb-8 transform hover:scale-105 transition-transform duration-300">
+              <Logo size="auth" variant="square" theme="light" />
+            </div>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Login to your account</h1>
+            <p className="mt-2 text-slate-500">Secure access to your medical dashboard</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            <div className="space-y-4">
               <Input
-                label="Email"
+                label="Email Address"
                 name="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="name@example.com"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 error={errors.email}
-                leftIcon={<Mail className="w-5 h-5 text-white/70" />}
-                className="bg-white/10 text-white placeholder:text-white/50 border-white/20"
+                leftIcon={<Mail className="w-5 h-5" />}
+                className="rounded-2xl border-slate-200 focus:border-primary-500 transition-all duration-200"
                 required
               />
 
@@ -145,53 +171,88 @@ export default function LoginPage() {
                 label="Password"
                 name="password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
+                placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 error={errors.password}
-                leftIcon={<Lock className="w-5 h-5 text-white/70" />}
-                className="bg-white/10 text-white placeholder:text-white/50 border-white/20"
+                leftIcon={<Lock className="w-5 h-5" />}
                 rightIcon={
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-white/70">
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-slate-400 hover:text-primary-500 transition-colors duration-200 focus:outline-none">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 }
+                className="rounded-2xl border-slate-200 focus:border-primary-500 transition-all duration-200"
                 required
               />
 
               {showMFA && (
                 <Input
-                  label="MFA Code"
+                  label="MFA Verification Code"
                   name="mfaCode"
                   type="text"
-                  placeholder="Enter 6-digit code"
+                  placeholder="000000"
                   value={formData.mfaCode}
                   onChange={(e) => setFormData({ ...formData, mfaCode: e.target.value })}
                   maxLength={6}
+                  className="rounded-2xl border-primary-300 bg-primary-50 text-center text-xl font-mono tracking-[0.5em]"
                   required
                 />
               )}
-
-              <div className="flex items-center justify-between">
-                <label className="flex items-center">
-                  <input type="checkbox" className="w-4 h-4 text-primary-600 border-white/30 rounded bg-white/20" />
-                  <span className="ml-2 text-sm text-white/90">Remember me</span>
-                </label>
-                <Link href="/auth/forgot-password" size="sm" className="text-white hover:underline text-sm font-medium">Forgot password?</Link>
-              </div>
-
-              <Button type="submit" fullWidth size="lg" isLoading={loading}>Sign In</Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-white/90">
-                Don't have an account?{' '}
-                <Link href="/auth/register" className="text-white font-medium underline">Sign up</Link>
-              </p>
             </div>
-          </Card>
-        </main>
+
+            <div className="flex items-center justify-between">
+              <label className="flex items-center group cursor-pointer">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 appearance-none border-2 border-slate-200 rounded-md checked:bg-primary-600 checked:border-primary-600 transition-all duration-200"
+                  />
+                  <svg className="absolute w-3 h-3 text-white top-1 left-1 opacity-0 pointer-events-none check-icon transition-opacity duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <span className="ml-2 text-sm text-slate-600 group-hover:text-primary-600 transition-colors">Remember me</span>
+              </label>
+              <Link href="/auth/forgot-password" className="text-primary-600 hover:text-primary-700 text-sm font-semibold transition-colors duration-200">
+                Forgot password?
+              </Link>
+            </div>
+
+            <Button
+              type="submit"
+              fullWidth
+              size="lg"
+              isLoading={loading}
+              className="rounded-2xl py-4 bg-primary-600 hover:bg-primary-700 shadow-xl shadow-primary-500/20 active:scale-[0.98] transition-all transform duration-200"
+            >
+              Sign In <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </form>
+
+          <div className="relative flex items-center py-5">
+            <div className="flex-grow border-t border-slate-200"></div>
+            <span className="flex-shrink mx-4 text-slate-400 text-sm font-medium uppercase tracking-widest px-2">New here?</span>
+            <div className="flex-grow border-t border-slate-200"></div>
+          </div>
+
+          <div className="text-center">
+            <p className="text-slate-600">
+              Create a free account to get started &mdash;{' '}
+              <Link href="/auth/register" className="text-primary-600 font-bold hover:text-primary-700 decoration-2 underline-offset-4 transition-all duration-200">
+                Sign up now
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
+      <style jsx>{`
+        .check-icon {
+          opacity: 1;
+        }
+        input:checked ~ .check-icon {
+          opacity: 1;
+        }
+      `}</style>
     </div>
   );
 }

@@ -108,7 +108,7 @@ export const sendSMS = async (
 // Create and save notification to database
 export const createNotification = async (
   userId: mongoose.Types.ObjectId | string,
-  type: 'lab_order' | 'payment_received' | 'test_completed' | 'result_uploaded' | 'prescription_created' | 'test_assigned' | 'appointment_booked' | 'appointment_cancelled' | 'lab_request' | 'appointment',
+  type: 'lab_order' | 'payment_received' | 'test_completed' | 'result_uploaded' | 'prescription_created' | 'test_assigned' | 'appointment_booked' | 'appointment_cancelled' | 'lab_request' | 'appointment' | 'refill_request' | 'new_order',
   title: string,
   message: string,
   data?: Record<string, any>
@@ -435,5 +435,59 @@ export const notifyLabRequestAssigned = async (
     sendRealtimeNotification(io, labUserId.toString(), notification);
   } catch (error: any) {
     logger.error(`Failed to notify lab request assigned: ${error.message}`);
+  }
+};
+
+// Notify pharmacy about new refill request
+export const notifyRefillRequest = async (
+  io: any,
+  pharmacyUserIds: string[],
+  patientName: string,
+  medicationName: string,
+  refillId: string
+): Promise<void> => {
+  try {
+    const title = 'New Refill Request';
+    const message = `${patientName} requested a refill for ${medicationName}`;
+
+    for (const userId of pharmacyUserIds) {
+      const notification = await createNotification(
+        userId,
+        'refill_request',
+        title,
+        message,
+        { refillId, patientName, medicationName, type: 'refill_request' }
+      );
+      sendRealtimeNotification(io, userId, notification);
+    }
+  } catch (error: any) {
+    logger.error(`Failed to notify refill request: ${error.message}`);
+  }
+};
+
+// Notify pharmacy about new medicine order
+export const notifyNewOrder = async (
+  io: any,
+  pharmacyUserIds: string[],
+  patientName: string,
+  orderId: string,
+  totalAmount: number
+): Promise<void> => {
+  try {
+    const title = 'New Medicine Order';
+    const message = `${patientName} placed an order for ৳${totalAmount.toLocaleString()}`;
+
+    for (const userId of pharmacyUserIds) {
+      const notification = await createNotification(
+        userId,
+        'new_order',
+        title,
+        message,
+        { orderId, patientName, totalAmount, type: 'new_order' }
+      );
+      sendRealtimeNotification(io, userId, notification);
+    }
+  } catch (error: any) {
+    logger.error(`Failed to notify new order: ${error.message}`);
   }
 };

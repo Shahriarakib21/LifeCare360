@@ -1,0 +1,502 @@
+                            category                             | count 
+-----------------------------------------------------------------+-------
+                                                                 |   985
+ Third generation Cephalosporins                                 |   903
+ Drugs for Osteoarthritis                                        |   740
+ Proton Pump Inhibitor                                           |   546
+ Second generation Cephalosporins                                |   480
+ Non-sedating antihistamines                                     |   457
+ Adjunct anti-epileptic drugs                                    |   434
+ First generation Cephalosporins                                 |   392
+ Specific mineral & vitamin combined preparations                |   387
+ Combined antihypertensive preparations                          |   363
+ Specific combined vitamin preparations                          |   358
+ Non opioid analgesics                                           |   336
+ Broad spectrum penicillins                                      |   295
+ Other Anti-anginal & Anti-ischaemic drugs                       |   287
+ Macrolides                                                      |   285
+ Drugs for subcutaneous and mycoses                              |   268
+ 4-Quinolone preparations                                        |   266
+ Sedating Anti-histamine                                         |   264
+ Anti-diarrhoeal Antimicrobial drugs                             |   260
+ Herbal and Nutraceuticals                                       |   259
+ Penicillinase-resistant penicillins                             |   249
+ Angiotensin-ll receptor blocker                                 |   231
+ Anti-emetic drugs                                               |   218
+ Cytotoxic Chemotherapy                                          |   218
+ Combination Oral hypoglycemic preparations                      |   217
+ Drugs used for Rheumatoid Arthritis                             |   215
+ Motility Stimulants                                             |   205
+ Short-acting selective & β2-adrenoceptor stimulants             |   199
+ Amoebicides                                                     |   198
+ Leukotriene receptor antagonists                                |   198
+ Glucocorticoids                                                 |   195
+ Non-steroidal Anti-inflammatory Drugs (NSAIDs)                  |   193
+ Sulfonylureas                                                   |   192
+ Biguanides                                                      |   189
+ Anthelmintic                                                    |   183
+ Antacids                                                        |   180
+ Cough expectorants & mucolytics                                 |   178
+ Calcium-channel blockers                                        |   176
+ Atypical neuroleptic drugs                                      |   164
+ Minerals in bone formation                                      |   160
+ Drugs for Erectile Dysfunction                                  |   156
+ Bronchodilator                                                  |   149
+ Anticholinergics                                                |   145
+ H2 receptor antagonist                                          |   135
+ Anti-platelet drugs                                             |   132
+ Multi-vitamin & Multi-mineral combined preparations             |   131
+ Ophthalmic antibacterial drugs                                  |   131
+ Specific mineral preparations                                   |   129
+ Ophthalmic Non-Steroid drugs                                    |   124
+ Targeted Cancer Therapy                                         |   124
+ Vitamin in bone formation                                       |   123
+ Iron, Vitamin & Mineral Combined preparation                    |   121
+ BPH/ Urinary retention/ Urinary incontinence                    |   119
+ Other Antifungal preparations                                   |   116
+ Antiparkinson drugs                                             |   115
+ Iron & Vitamin Combined preparations                            |   111
+ Dipeptidyl Peptidase-4 (DPP-4) inhibitor                        |   109
+ Osmotic purgatives                                              |   106
+ Centrally acting Skeletal Muscle Relaxants                      |   106
+ Opioid analgesics                                               |   105
+ Ophthalmic steroid - antibiotic combined preparations           |   102
+ Other beta-lactam Antibiotics                                   |   101
+ SSRIs & related anti-depressant drugs                           |   100
+ Other Topical corticosteroids                                   |    99
+ Primary anti-epileptic drugs                                    |    97
+ Drugs for miotics and glaucoma                                  |    94
+ Tetracycline group of drugs                                     |    89
+ Sulphonamides & Trimethoprim                                    |    88
+ Immunosuppressant                                               |    88
+ Cromoglycate & related drugs                                    |    84
+ Combined anxiolytics & anti-depressant drugs                    |    83
+ Angiotensin-converting enzyme (ACE) inhibitors                  |    81
+ Beta-adrenoceptor blocking drugs                                |    80
+ Anticholinergics (antimuscarinics)/ Anti-spasmodics             |    80
+ Drugs for Dry eyes                                              |    79
+ Alpha adrenoceptor blocking drugs                               |    79
+ Long-acting selective β-adrenoceptor stimulants                 |    76
+ Topical Antibiotic preparations                                 |    75
+ Anti adrenergic agent (Beta blockers)                           |    75
+ Parenteral nutritional preparations                             |    70
+ Female Sex hormones                                             |    70
+ Anti-diarrhoeal Antiprotozoal                                   |    70
+ Vaccines, Anti-sera & Immunoglobulin                            |    70
+ Cough suppressant                                               |    69
+ Parenteral Iron Preparations                                    |    68
+ Stimulation of Cartilage formation                              |    67
+ Sodium-glucose Cotransporter-2 (SGLT2) Inhibitors               |    66
+ Iodine compounds (Anti-septic Preparations)                     |    65
+ Topical Antifungal preparations                                 |    64
+ Benzodiazepine sedatives                                        |    64
+ Ophthalmic Steroid preparations                                 |    62
+ Fourth generation Cephalosporins                                |    59
+ Anti-oxidant Multivitamin preparations                          |    58
+ Chlorhexidine & Chloroxylenol preparations                      |    57
+ Benzodiazepine hypnotics                                        |    56
+ Parasiticidal preparations                                      |    56
+ Corticosteroid                                                  |    55
+ Combined cough expectorants                                     |    54
+ Anti-malarial drugs                                             |    53
+ Vitamin-C Preparations                                          |    52
+ Potassium-sparing diuretics                                     |    51
+ Other drugs for migraine                                        |    51
+ Parenteral anti-coagulants                                      |    50
+ Nasal Anti-histamine preparations                               |    49
+ Bisphosphonate preparations                                     |    48
+ Aural steroid & antibiotic combined preparations                |    47
+ Hepatic viral infections (Hepatitis B)                          |    47
+ Intravenous fluid preparations                                  |    47
+ Oral electrolytes preparations                                  |    46
+ Anti-fibrinolytic drugs                                         |    45
+ Clobetasol / Clobetasone & Combined Preparations                |    45
+ Aural Anti-bacterial preparations                               |    44
+ Hepatic viral infections (Hepatitis C)                          |    43
+ Vitamin-B preparations                                          |    43
+ Triamcinolone & Combined preparations                           |    42
+ Drugs for Haemolytic Hypoplastic & Renal Anemia                 |    41
+ Herpes simplex & Varicella-zoster virus infections              |    40
+ Atypical anti-depressant drugs                                  |    40
+ Hydrocortisone & Combined preparations                          |    39
+ Nitrates: Coronary vasodilators                                 |    38
+ Drugs used in Gout                                              |    38
+ Supplements & adjuvant therapy                                  |    38
+ Vitamin-E Preparations                                          |    38
+ Oral Anti-coagulants                                            |    37
+ Miscellaneous prophylactic migraine preparations                |    37
+ Long Acting Insulin                                             |    37
+ Anti-viral drugs                                                |    36
+ Bleaching and Disinfectants                                     |    36
+ Hormonal Chemotherapy                                           |    35
+ Rapid Acting Insulin                                            |    35
+ Antidote preparations                                           |    34
+ Oral Contraceptive preparations                                 |    33
+ Drugs acting on the Uterus                                      |    33
+ Benzylpenicillin & Phenoxymethyl penicillin                     |    32
+ Combined cough suppressants                                     |    32
+ Medium Acting Insulin                                           |    32
+ Miscellaneous topical agents                                    |    32
+ Mydriatic and Cycloplegic agents                                |    32
+ Betamethasone & Combined preparations                           |    31
+ Serotonin-norepinephrine reuptake inhibitor (SNRI)              |    31
+ Topical Analgesics                                              |    30
+ Drugs for Megaloblastic Anemia                                  |    30
+ Anti-gallstones drugs: Bile Acids                               |    30
+ Loop diuretics                                                  |    29
+ Nasal Steroid Preparations                                      |    29
+ Respiratory corticosteroids                                     |    29
+ Aminoglycosides                                                 |    28
+ Bulk-forming laxatives                                          |    28
+ Fibrinolytics (Thrombolytics)                                   |    28
+ Anti vertigo drugs                                              |    28
+ Ophthalmic and Topical antibacterial products                   |    27
+ Topical retinoid and related preparations                       |    27
+ Local & Surface anesthesia                                      |    26
+ Thyroid drugs & hormone                                         |    26
+ Combined bronchodilators                                        |    26
+ Drugs for Dementia                                              |    26
+ Aural Anti-fungal preparations                                  |    26
+ Systemic Urinary Anti- infective                                |    25
+ Oral nutritional preparations                                   |    25
+ Prostaglandin analogues                                         |    25
+ Oral Iron preparations                                          |    25
+ Anti-oxidant Multivitamin Multimineral preparations             |    24
+ Meglitinide Analogues                                           |    23
+ Tyrosine Kinase Inhibitor                                       |    23
+ General (Intravenous) anesthetics                               |    23
+ Thiazide diuretics & related drugs                              |    22
+ Haematopoietic Agents                                           |    22
+ Prevention of repeated kidney stone formation                   |    21
+ Oral preparations                                               |    21
+ Nasal Decongestants & Other Nasal Preparations                  |    20
+ Drugs for HIV / Anti-retroviral drugs                           |    20
+ Ophthalmic Anti-allergic preparations                           |    20
+ Antacid with laxative action                                    |    20
+ Fibrates                                                        |    19
+ Cholagogues, Cholelitholytics & Hepatic Protectors              |    19
+ Other antibacterial preparation                                 |    19
+ Fluocinolone & Combined Preparations                            |    19
+ Topical anti-inflammatory preparations                          |    18
+ Cerebral vasodilator & Neurosensory oxygenator drugs            |    18
+ Drugs for Infertility                                           |    18
+ Farnesoid X Receptor Agonists                                   |    18
+ Central Depolarizing muscle relaxants                           |    18
+ Phlebotonic & Vascular protecting preparation                   |    17
+ Anti-hypertensive                                               |    17
+ Anti-dyspeptic/Carminatives                                     |    17
+ Hydroquinone Preparations                                       |    17
+ Thiazolidinedione Group                                         |    17
+ Mast Cell Stabiliser                                            |    17
+ Ophthalmic Anti-viral Products                                  |    17
+ Plasma expanders                                                |    16
+ Tricyclic & related anti-depressant drugs                       |    16
+ Other scalp preparations                                        |    16
+ Supportive Care Therapy                                         |    16
+ Drugs affecting the immune response                             |    15
+ Haemodialysis solutions                                         |    15
+ CNS stimulant drugs                                             |    15
+ Miscellaneous sedatives & hypnotics                             |    15
+ Other ophthalmic preparations                                   |    15
+ Tricyclic Anti-depressant                                       |    15
+ Haemostatic drugs                                               |    14
+ Other preparations                                              |    14
+ Fluticasone & combined preparations topical                     |    14
+ Anticholinergic bronchodilators                                 |    14
+ Anti-diarrhoeal                                                 |    13
+ Contrast medium for diagnostic procedures                       |    13
+ Alpha-Glucosidase inhibitor                                     |    13
+ Drugs used in meniere's diseases                                |    13
+ Drugs for menopausal symptoms: Hormone replacement therapy      |    13
+ Phenothiazine related drugs                                     |    13
+ 5-HT Agonists                                                   |    13
+ Digestive Enzyme                                                |    13
+ Regional anesthesia                                             |    13
+ Anti-anginal & lipid lowering drugs                             |    13
+ Other Anti-protozoals                                           |    13
+ Emollients & combined preparations                              |    12
+ GLP-1 receptor agonists                                         |    12
+ Non depolarizing muscle relaxants                               |    12
+ Appetite suppressant drugs/Anti-obesity drugs                   |    12
+ Drugs for muscular energy metabolism                            |    11
+ Topical antibiotic & retinoid preparations                      |    11
+ Other laxative preparations                                     |    11
+ Disease-modifying antirheumatic drugs (DMARDs)                  |    11
+ Respiratory viral infections (Influenza)                        |    11
+ Chelating complex                                               |    11
+ Other adrenoceptor stimulants                                   |    11
+ Preparations for Ophthalmic diagnosis                           |    11
+ Other lipid regulating drugs                                    |    11
+ Drugs affecting (inhibiting) gonadotrophin                      |    11
+ Acne treatment preparations                                     |    11
+ Electrolytes preparations                                       |    11
+ Drugs used in Vaginal and Vulval condition                      |    11
+ Phenothiazine drugs                                             |    10
+ Peripheral Vasodilator drugs: Intermittent Claudication         |    10
+ Emergency Contraceptive Pill                                    |    10
+ Vitamin-K Preparations                                          |    10
+ Combination Insulin                                             |    10
+ Topical urea preparations                                       |     9
+ Local Antipruritic                                              |     9
+ Antihistamines anti-allergies & hypo-sensitisation              |     9
+ Drugs for lens opacification                                    |     8
+ Drugs affecting exocrine secretions                             |     8
+ Aminosalicylates                                                |     8
+ Intracellular antibiotic                                        |     8
+ Drugs used in tremor, tics & related disorder                   |     8
+ Gonadotropin-releasing hormone (GnRH) antagonist                |     8
+ Sunblock Preparation                                            |     8
+ Drugs for Irritable Bowel Syndrome                              |     8
+ Anti H. pylori drugs                                            |     7
+ Inotropic-sympathomimetics                                      |     7
+ Vitamin-A preparations                                          |     7
+ Mecillinams                                                     |     7
+ Compound steroidal preparations                                 |     7
+ General (Inhalation) anesthetics                                |     7
+ Combined anti- Tubercular Preparations                          |     7
+ Anti-histamine & decongestant                                   |     7
+ Topical salicylic preparation                                   |     7
+ Cytotoxic immunosuppressants                                    |     7
+ Potassium channel blockers                                      |     6
+ Long acting penicillin                                          |     6
+ Hormone in bone formation by stimulation                        |     6
+ Drugs for reduction of serum phosphorus in patients with ESRD   |     6
+ Other genito-urinary preparations                               |     6
+ Centrally acting antihypertensive drugs (central sympatholytic) |     6
+ Stimulator of soluble guanylate cyclase                         |     6
+ Anti-thyroid drugs                                              |     6
+ Drugs used in Ano-rectal region                                 |     6
+ Osmotic diuretics                                               |     5
+ Anti-cholinesterases                                            |     5
+ Male Sex hormones (Androgens)                                   |     5
+ Oral Retinoid preparations                                      |     5
+ Positive Inotropic drugs                                        |     5
+ Vaso Protective                                                 |     5
+ Combined preparations                                           |     5
+ Pyrrolopyrimidines                                              |     5
+ Topical Antiviral preparations                                  |     5
+ Ocular perioperative drugs                                      |     5
+ Growth hormone antagonist                                       |     5
+ Glycopeptide                                                    |     5
+ Benzoyl peroxide, Azelaic acid & other preparations             |     5
+ Locally acting Skeletal Muscle Relaxants                        |     5
+ Topical Vitamin D & related preparations                        |     4
+ Hormone preparations for other uses                             |     4
+ Anti-Tubercular Antibiotics                                     |     4
+ Oral retinoids for Acne                                         |     4
+ Drugs used in diaper rash                                       |     4
+ Alpha and Beta-adrenergic agonist                               |     4
+ Hematopoietic drug                                              |     4
+ Anti-manic drugs                                                |     4
+ Potassium-channel activator                                     |     4
+ Enema & bowel cleansing solution                                |     4
+ Irrigation Solution used in Urological Surgery                  |     4
+ Ophthalmic Anti-fungal Products                                 |     4
+ Coal-tar preparations                                           |     3
+ Hair Growth Inhibitor                                           |     3
+ Anti neoplastic preparations                                    |     3
+ Combined preparations: Inhibiting bone resorption               |     3
+ Benzodiazepine antagonist                                       |     3
+ Drugs for Growth failure                                        |     3
+ Depolarizing muscle relaxants                                   |     3
+ Water purifying agent                                           |     3
+ Vasoconstrictor/Venotonic                                       |     3
+ Anticavity Mouthwash                                            |     3
+ Nicotinic acid group                                            |     3
+ Ezetimibe                                                       |     3
+ Topical antibiotics for Acne                                    |     3
+ Irrigation during various surgical procedures                   |     3
+ Crystal violet/ Gentian violet preparations                     |     3
+ Trophic Hormones & Related Synthetic Drugs                      |     2
+ Stool softener                                                  |     2
+ Calcium Regulator                                               |     2
+ Membrane stabilizing agent (Sodium channel blockers)            |     2
+ Drugs for Age-Related Macular Degeneration (AMD)                |     2
+ Prokinetic drugs                                                |     2
+ Oral Hormonal preparations for Acne                             |     2
+ Protein kinase inhibitor                                        |     2
+ Piperidinyl-benzisoxazole derivative                            |     2
+ Carbonic anhydrase inhibitor                                    |     2
+ Immunomodulator                                                 |     2
+ Beta-blockers                                                   |     2
+ Methoxsalen preparation                                         |     2
+ Non-prostanoid IP prostacyclin receptor agonist                 |     2
+ Drugs used in Myasthenia Gravis                                 |     2
+ Anti-Alzheimer drugs                                            |     2
+ Dithranol & combined preparations                               |     2
+ Ophthalmic Non-Steroid Combined preparations                    |     2
+ Anti-fungal or anti-bacterial ear drops                         |     2
+ Dressing products for wounds/burns/ulcers                       |     2
+ Drugs used in chronic kidney dialysis                           |     2
+ Synthetic analogue of ADH                                       |     2
+ Inhibiting bone resorption                                      |     2
+ Hormone in bone formation by Inhibiting bone resorption         |     2
+ Respiratory stimulants: analeptics                              |     1
+ Peritoneal dialysis solution                                    |     1
+ Ergot Alkaloids                                                 |     1
+ Echinocandins                                                   |     1
+ Topical Local Anesthetics                                       |     1
+ Decongestant                                                    |     1
+ Drugs used in substance dependence                              |     1
+ Paroxysmal supraventricular tachycardia (PSVT)                  |     1
+ Hyperkalaemia Products                                          |     1
+ Carboxylic acids and derivatives                                |     1
+ Ulcerative Colitis                                              |     1
+ Neurodegenerative Disease Drugs / Neuromuscular Disorder Drugs  |     1
+ Anti-histamine Preparations                                     |     1
+ Oxidising agent with antibacterial and antiviral properties     |     1
+ Anti-infective & Anesthetic combined preparations               |     1
+ Leishmaniacides                                                 |     1
+ Painkiller Muscle Relaxant                                      |     1
+ Aldose reductase inhibitor                                      |     1
+ Enzymes                                                         |     1
+ Cerumenolytic                                                   |     1
+ Anti-Tubercular Chemotherapeutics                               |     1
+ Antihaemophilic factor                                          |     1
+ Stimulant purgatives                                            |     1
+ Haemostatics                                                    |     1
+ Immunological Chemotherapy                                      |     1
+ Selective vasopressin V2-receptor antagonist                    |     1
+ Dyslipidaemic Agents                                            |     1
+(358 rows)
+
+          dosageForm          | count 
+------------------------------+-------
+ Tablet                       |  9329
+ Capsule                      |  1998
+ Powder for Suspension        |  1004
+ Syrup                        |  1002
+ Ophthalmic Solution          |   725
+ IM/IV Injection              |   610
+ Oral Suspension              |   568
+ IV Infusion                  |   505
+ Cream                        |   495
+ Capsule (Delayed Release)    |   437
+ IV Injection                 |   397
+ Tablet (Enteric Coated)      |   307
+ Chewable Tablet              |   283
+ IM Injection                 |   275
+ Tablet (Extended Release)    |   247
+ Pediatric Drops              |   244
+ Ointment                     |   242
+ Oral Solution                |   214
+ SC Injection                 |   213
+ Injection                    |   189
+ IV Injection or Infusion     |   157
+ Capsule (Timed Release)      |   144
+ Tablet (Sustained Release)   |   127
+ Tablet (Delayed Release)     |   122
+ Ophthalmic Suspension        |   116
+ Oral Powder                  |   114
+ Inhalation Capsule           |   109
+ Inhaler                      |    95
+ Dispersible Tablet           |    79
+ Ophthalmic Ointment          |    76
+ Hand Rub                     |    71
+ Capsule (Sustained Release)  |    65
+ Tablet (Controlled Release)  |    65
+ Nasal Spray                  |    65
+ Suppository                  |    63
+ Tablet (Modified Release)    |    54
+ Gel                          |    53
+ IV/SC Injection              |    49
+ Nasal Drop                   |    46
+ Lotion                       |    45
+ MUPS Tablet                  |    43
+ Effervescent Tablet          |    37
+ Mouthwash                    |    36
+ Capsule (Modified Release)   |    36
+ Solution                     |    34
+ Topical Gel                  |    30
+ Effervescent Powder          |    24
+ Eye Capsule                  |    23
+ IM/SC Injection              |    22
+ Nebuliser Solution           |    22
+ Oral Gel                     |    22
+ Ophthalmic Gel               |    21
+ Scalp Solution               |    21
+ Ear Drop                     |    21
+ Topical Spray                |    20
+ Topical Solution             |    19
+ Shampoo                      |    14
+ Liquid                       |    14
+ Retard Tablet                |    11
+ Respirator Solution          |    11
+ Vaginal Cream                |    11
+ Flash Tablet                 |    11
+ IM/IA Injection              |    10
+ Vaginal Tablet               |    10
+ Topical Powder               |     9
+ Dialysis Solution            |     9
+ Solution for Inhalation      |     9
+ Vaginal Suppository          |     9
+ Intraspinal Injection        |     9
+ Capsule (Extended Release)   |     9
+ Effervescent Granules        |     8
+ Ophthalmic Emulsion          |     8
+ Oral Emulsion                |     7
+ Oral Paste                   |     7
+ Nebuliser Suspension         |     7
+ Emulsion for infusion        |     7
+ Irrigation Solution          |     7
+ Transdermal Patch            |     6
+ Rectal Ointment              |     5
+ Viscoelastic Solution        |     5
+ Vaginal Gel                  |     5
+ Capsule (Controlled Release) |     4
+ Sublingual Tablet            |     4
+ Intra-articular Injection    |     4
+ Scalp Lotion                 |     4
+ Scalp Ointment               |     3
+ Long Acting Tablet           |     3
+ Long Acting Injection        |     3
+ Powder for Injection         |     3
+ Sprinkle Capsule             |     3
+ Nail Lacquer                 |     2
+ Intravitreal Injection       |     2
+ Microgranules                |     2
+ Oral Soluble Film            |     2
+ Surgical Scrub               |     2
+ Viscous Eye Drop             |     2
+ Rectal Saline                |     2
+ Powder for Solution          |     2
+ Medicated Bar                |     2
+ Tablet (Prolonged Release)   |     2
+ Muscle Rub                   |     2
+ Intratracheal Suspension     |     2
+ Dental Gel                   |     2
+ Ocular Spray                 |     1
+ Liquid Cleanser Soap         |     1
+ Nasal Ointment               |     1
+ Intracameral Injection       |     1
+ Chewing Gum Tablet           |     1
+ Topical Suspension           |     1
+ Tablet (Immediate Release)   |     1
+ Vaginal Pessary              |     1
+ OROS Tablet                  |     1
+(112 rows)
+
+  strength   | count 
+-------------+-------
+ 500 mg      |  1298
+ 10 mg       |  1076
+             |   849
+ 20 mg       |   734
+ 5 mg        |   710
+ 50 mg       |   672
+ 100 mg      |   591
+ 250 mg      |   574
+ 200 mg      |   511
+ 400 mg      |   473
+ 125 mg/5 ml |   420
+ 40 mg       |   393
+ 150 mg      |   295
+ 25 mg       |   285
+ 200 mg/5 ml |   268
+ 500 mg/vial |   240
+ 1 gm/vial   |   232
+ 1%          |   226
+ 100 mg/5 ml |   218
+ 2 mg        |   217
+(20 rows)
+

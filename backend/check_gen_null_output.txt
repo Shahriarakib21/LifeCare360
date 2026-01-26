@@ -1,0 +1,11 @@
+ count 
+-------
+     2
+(1 row)
+
+   name   
+----------
+ Affrox
+ Pregcare
+(2 rows)
+

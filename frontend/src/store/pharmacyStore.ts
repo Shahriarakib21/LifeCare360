@@ -55,6 +55,8 @@ export interface Customer {
     phone?: string;
     profile?: any;
     createdAt: string;
+    totalOrders?: number;
+    lastVisit?: string;
 }
 
 export interface DashboardStats {
@@ -98,7 +100,7 @@ interface PharmacyState {
     updatePrescription: (id: string, updates: any) => Promise<void>;
     deletePrescription: (id: string) => Promise<void>;
 
-    fetchOrders: (status?: string) => Promise<void>;
+    fetchOrders: (status?: string, patientId?: string) => Promise<void>;
     addOrder: (order: Partial<Order>) => Promise<void>;
     updateOrderStatus: (id: number, status: string, paymentStatus?: string) => Promise<void>;
 
@@ -244,10 +246,14 @@ export const usePharmacyStore = create<PharmacyState>((set, get) => ({
     },
 
 
-    fetchOrders: async (status) => {
+    fetchOrders: async (status, patientId) => {
         set({ isLoading: true, error: null });
         try {
-            const url = status ? `/api/pharmacy/orders?status=${status}` : '/api/pharmacy/orders';
+            const params = new URLSearchParams();
+            if (status && status !== 'all') params.append('status', status);
+            if (patientId) params.append('patientId', patientId);
+
+            const url = `/api/pharmacy/orders?${params.toString()}`;
             const response = await api.get(url);
 
             const orders: Order[] = response.data.data.orders.map((o: any) => ({
@@ -313,10 +319,13 @@ export const usePharmacyStore = create<PharmacyState>((set, get) => ({
         try {
             const response = await api.get('/api/pharmacy/customers');
             const customers = response.data.data.customers.map((c: any) => ({
-                id: c._id,
+                id: c.id || c._id,
                 name: c.name,
                 email: c.email,
                 phone: c.phone,
+                totalOrders: c.totalOrders || 0,
+                lastVisit: c.lastVisit,
+                profile: c.profile,
                 createdAt: c.createdAt
             }));
             set({ customers, isLoading: false });

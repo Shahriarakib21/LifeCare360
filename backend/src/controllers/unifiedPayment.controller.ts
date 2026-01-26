@@ -38,9 +38,12 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
         }
 
         // Calculate amounts
-        const baseAmount = itemBreakdown.reduce((sum: number, item: any) => sum + item.total, 0);
-        const vatAmount = Math.round(baseAmount * 0.05); // 5% VAT
-        const serviceCharge = Math.round(baseAmount * 0.02); // 2% service charge
+        const baseAmount = itemBreakdown.reduce((sum: number, item: any) => {
+            const itemTotal = Number(item.total) || 0;
+            return sum + itemTotal;
+        }, 0);
+        const vatAmount = Math.round(baseAmount * 0.05) || 0; // 5% VAT
+        const serviceCharge = Math.round(baseAmount * 0.02) || 0; // 2% service charge
         const totalAmount = baseAmount + vatAmount + serviceCharge;
 
         // Get provider ID based on service type
@@ -97,7 +100,13 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
             vatAmount,
             serviceCharge,
             totalAmount,
-            itemBreakdown,
+            itemBreakdown: itemBreakdown.map((item: any) => ({
+                name: item.name,
+                description: item.description,
+                quantity: Number(item.quantity) || 1,
+                unitPrice: Number(item.unitPrice) || Number(item.total) || 0,
+                total: Number(item.total) || 0
+            })),
             expiresAt,
             metadata,
         });

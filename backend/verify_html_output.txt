@@ -1,0 +1,15 @@
+ count 
+-------
+     0
+(1 row)
+
+ count 
+-------
+ 21712
+(1 row)
+
+  id   |  name   |                                                                                                                                                               description                                                                                                                                                                
+-------+---------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 28385 | Sefanid | Cefadroxil inhibits bacterial cell wall synthesis by binding to 1 or more of the penicillin-binding proteins (PBPs) which in turn inhibit the final transpeptidation step of peptidoglycan synthesis in bacterial cell walls, thus inhibiting cell wall biosynthesis and arresting cell wall assembly resulting in bacterial cell death.
+(1 row)
+

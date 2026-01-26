@@ -59,7 +59,7 @@ export default function MedicationsPage() {
                     }] : [];
 
                 return medsList.map((m: any, idx: number) => ({
-                    id: `${record._id}-${idx}`,
+                    id: record._id, // Store real EHR ID for refill requests
                     name: m.name || m.medication || 'Unknown',
                     dosage: m.dosage,
                     frequency: m.frequency,
@@ -69,7 +69,7 @@ export default function MedicationsPage() {
                     prescribedBy: {
                         name: record.recordedBy?.profile ? `Dr. ${record.recordedBy.profile.firstName} ${record.recordedBy.profile.lastName}` : 'Unknown Doctor'
                     },
-                    status: 'active' // Logic to determine status based on date/duration could go here
+                    status: 'active'
                 }));
             }).flat();
 
@@ -84,9 +84,18 @@ export default function MedicationsPage() {
     const activeMeds = medications.filter(m => m.status === 'active');
     const pastMeds = medications.filter(m => m.status !== 'active');
 
-    const handleRefillRequest = (medName: string) => {
-        // In a real app, this would trigger a request to the pharmacy or doctor
-        toast.success(`Refill request sent for ${medName}`);
+    const handleRefillRequest = async (med: Medication) => {
+        try {
+            await api.post('/api/pharmacy/refills', {
+                prescriptionId: med.id, // This is the EHR record._id
+                medication: med.name,
+                quantity: parseInt(med.dosage) || 1, // Defaulting to 1 or parsing from dosage if possible
+                notes: `Refill requested for ${med.name} (${med.dosage})`
+            });
+            toast.success(`Refill request sent for ${med.name}`);
+        } catch (error: any) {
+            toast.error(handleApiError(error));
+        }
     };
 
     const handleAddReminder = async (e: React.FormEvent) => {
@@ -157,7 +166,7 @@ export default function MedicationsPage() {
 
                                             <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
                                                 <span className="text-xs text-slate-400">Prescribed by {med.prescribedBy?.name}</span>
-                                                <Button size="sm" variant="ghost" className="text-teal-600 hover:bg-teal-50 h-8" onClick={() => handleRefillRequest(med.name)}>
+                                                <Button size="sm" variant="ghost" className="text-teal-600 hover:bg-teal-50 h-8" onClick={() => handleRefillRequest(med)}>
                                                     <RefreshCcw className="w-3 h-3 mr-1.5" /> Refill
                                                 </Button>
                                             </div>

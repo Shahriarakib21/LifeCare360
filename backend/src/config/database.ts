@@ -17,7 +17,7 @@ const sequelize = new Sequelize(
     host: process.env.POSTGRES_HOST || 'localhost',
     port: parseInt(process.env.POSTGRES_PORT || '5432'),
     dialect: 'postgres',
-    logging: (msg) => logger.debug(msg),
+    logging: (msg) => logger.info(msg),
     pool: {
       max: 5,
       min: 0,
@@ -44,9 +44,7 @@ const connectPostgreSQL = async (): Promise<void> => {
     await sequelize.authenticate();
     logger.info('✅ PostgreSQL connected successfully');
 
-    // Sync models - alter existing tables to add new columns
-    await sequelize.sync({ alter: true });
-    logger.info('✅ PostgreSQL schema synchronized');
+
   } catch (error) {
     logger.warn('⚠️  PostgreSQL connection error (continuing without PostgreSQL):', error);
     // Don't exit - allow server to run without PostgreSQL for development

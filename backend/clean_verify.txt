@@ -1,0 +1,13 @@
+  id   |  name   |                                                                                                                                                               description                                                                                                                                                                
+-------+---------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 18667 | Fodexil | Cefadroxil inhibits bacterial cell wall synthesis by binding to 1 or more of the penicillin-binding proteins (PBPs) which in turn inhibit the final transpeptidation step of peptidoglycan synthesis in bacterial cell walls, thus inhibiting cell wall biosynthesis and arresting cell wall assembly resulting in bacterial cell death.
+  6749 | Droxil  | Cefadroxil inhibits bacterial cell wall synthesis by binding to 1 or more of the penicillin-binding proteins (PBPs) which in turn inhibit the final transpeptidation step of peptidoglycan synthesis in bacterial cell walls, thus inhibiting cell wall biosynthesis and arresting cell wall assembly resulting in bacterial cell death.
+  6768 | Licef   | Cefadroxil inhibits bacterial cell wall synthesis by binding to 1 or more of the penicillin-binding proteins (PBPs) which in turn inhibit the final transpeptidation step of peptidoglycan synthesis in bacterial cell walls, thus inhibiting cell wall biosynthesis and arresting cell wall assembly resulting in bacterial cell death.
+  6775 | Fodexil | Cefadroxil inhibits bacterial cell wall synthesis by binding to 1 or more of the penicillin-binding proteins (PBPs) which in turn inhibit the final transpeptidation step of peptidoglycan synthesis in bacterial cell walls, thus inhibiting cell wall biosynthesis and arresting cell wall assembly resulting in bacterial cell death.
+ 28385 | Sefanid | Cefadroxil inhibits bacterial cell wall synthesis by binding to 1 or more of the penicillin-binding proteins (PBPs) which in turn inhibit the final transpeptidation step of peptidoglycan synthesis in bacterial cell walls, thus inhibiting cell wall biosynthesis and arresting cell wall assembly resulting in bacterial cell death.
+(5 rows)
+
+ id | name | description 
+----+------+-------------
+(0 rows)
+

@@ -1,0 +1,11 @@
+SELECT COUNT(*) FROM medicines WHERE category = 'Third generation Cephalosporins';
+SELECT COUNT(*) FROM medicines WHERE category = 'Second generation Cephalosporins';
+SELECT COUNT(*) FROM medicines WHERE category = 'First generation Cephalosporins';
+SELECT COUNT(*) FROM medicines WHERE category = 'Fourth generation Cephalosporins';
+SELECT COUNT(*) FROM medicines WHERE category = 'Broad spectrum penicillins';
+SELECT COUNT(*) FROM medicines WHERE category = 'Penicillinase-resistant penicillins';
+SELECT COUNT(*) FROM medicines WHERE category = 'Macrolides';
+SELECT COUNT(*) FROM medicines WHERE category = 'Tetracycline group of drugs';
+SELECT COUNT(*) FROM medicines WHERE category = 'Aminoglycosides';
+SELECT COUNT(*) FROM medicines WHERE category = 'Other beta-lactam Antibiotics';
+SELECT COUNT(*) FROM medicines WHERE category = 'Sulphonamides & Trimethoprim';

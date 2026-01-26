@@ -351,60 +351,65 @@ export default function HomePage() {
 
             <div className="grid md:grid-cols-3 gap-8">
               <AnimatePresence mode="wait">
-                {doctors.slice(currentIndex * 3, currentIndex * 3 + 3).map((doctor, index) => (
-                  <motion.div
-                    key={`${doctor.id}-${currentIndex}`}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                  >
-                    <Card hover className="overflow-hidden border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] group bg-white rounded-[2.5rem] p-4">
-                      <div className="relative aspect-square rounded-[2rem] overflow-hidden mb-6">
-                        {doctor.profileImage ? (
-                          <img
-                            src={doctor.profileImage.startsWith('http') ? doctor.profileImage : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}${doctor.profileImage}`}
-                            alt={doctor.name || doctor.specialization}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          />
-                        ) : (
-                          <ImagePlaceholder type="doctor" className="w-full h-full" />
-                        )}
-                        <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md shadow-sm border border-white/20">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3.5 h-3.5 text-warning-500 fill-warning-500" />
-                            <span className="text-xs font-bold text-secondary-900">{Number(doctor.rating || 0).toFixed(1)}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="px-2 pb-4 space-y-4">
-                        <div>
-                          <h3 className="text-xl font-black text-secondary-900 group-hover:text-primary-600 transition-colors">
-                            {doctor.name || `Dr. ${doctor.specialization}`}
-                          </h3>
-                          <p className="text-primary-600 font-bold text-sm tracking-wide uppercase">{doctor.specialization}</p>
-                        </div>
-
-                        <div className="flex items-center justify-between text-sm py-4 border-y border-secondary-50">
-                          <div className="flex items-center text-secondary-500">
-                            <Award className="w-4 h-4 mr-2 text-primary-400" />
-                            <span>{doctor.experience || 0} yrs exp</span>
-                          </div>
-                          <div className="font-black text-secondary-900">
-                            ৳{Number(doctor.consultationFee || 0).toFixed(2)}
+                <motion.div
+                  key={currentIndex}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.4 }}
+                  className="grid md:grid-cols-3 gap-8 w-full"
+                >
+                  {doctors.slice(currentIndex * 3, currentIndex * 3 + 3).map((doctor, index) => (
+                    <div
+                      key={doctor.id}
+                    >
+                      <Card hover className="overflow-hidden border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] group bg-white rounded-[2.5rem] p-4 h-full">
+                        <div className="relative aspect-square rounded-[2rem] overflow-hidden mb-6">
+                          {doctor.profileImage ? (
+                            <img
+                              src={doctor.profileImage.startsWith('http') ? doctor.profileImage : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}${doctor.profileImage}`}
+                              alt={doctor.name || doctor.specialization}
+                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            />
+                          ) : (
+                            <ImagePlaceholder type="doctor" className="w-full h-full" />
+                          )}
+                          <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md shadow-sm border border-white/20">
+                            <div className="flex items-center gap-1">
+                              <Star className="w-3.5 h-3.5 text-warning-500 fill-warning-500" />
+                              <span className="text-xs font-bold text-secondary-900">{Number(doctor.rating || 0).toFixed(1)}</span>
+                            </div>
                           </div>
                         </div>
 
-                        <Link href={`/doctors?id=${doctor.id}`} className="block">
-                          <Button fullWidth variant="primary" className="rounded-2xl">
-                            Book Appointment
-                          </Button>
-                        </Link>
-                      </div>
-                    </Card>
-                  </motion.div>
-                ))}
+                        <div className="px-2 pb-4 space-y-4">
+                          <div>
+                            <h3 className="text-xl font-black text-secondary-900 group-hover:text-primary-600 transition-colors">
+                              {doctor.name || `Dr. ${doctor.specialization}`}
+                            </h3>
+                            <p className="text-primary-600 font-bold text-sm tracking-wide uppercase">{doctor.specialization}</p>
+                          </div>
+
+                          <div className="flex items-center justify-between text-sm py-4 border-y border-secondary-50">
+                            <div className="flex items-center text-secondary-500">
+                              <Award className="w-4 h-4 mr-2 text-primary-400" />
+                              <span>{doctor.experience || 0} yrs exp</span>
+                            </div>
+                            <div className="font-black text-secondary-900">
+                              ৳{Number(doctor.consultationFee || 0).toFixed(2)}
+                            </div>
+                          </div>
+
+                          <Link href={`/doctors?id=${doctor.id}`} className="block">
+                            <Button fullWidth variant="primary" className="rounded-2xl">
+                              Book Appointment
+                            </Button>
+                          </Link>
+                        </div>
+                      </Card>
+                    </div>
+                  ))}
+                </motion.div>
               </AnimatePresence>
             </div>
           </div>

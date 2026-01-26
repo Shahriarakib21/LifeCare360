@@ -1,0 +1,54 @@
+    name     |               genericName               |        dosageForm         
+-------------+-----------------------------------------+---------------------------
+ Affrox      |                                         | Capsule
+ Adiz        | Azithromycin Dihydrate                  | Tablet
+ Adiz        | Azithromycin Dihydrate                  | Powder for Suspension
+ Adiz        | Azithromycin Dihydrate                  | Capsule
+ Age Plus    | Super antioxidant [vitamins & minerals] | Tablet
+ Alton       | Esomeprazole                            | IV Injection
+ Alton       | Esomeprazole                            | Tablet (Enteric Coated)
+ Alton       | Esomeprazole                            | Tablet (Enteric Coated)
+ Amason      | Dexamethasone                           | Tablet
+ AM          | Azithromycin Dihydrate                  | Tablet
+ AM          | Azithromycin Dihydrate                  | Powder for Suspension
+ Alvital     | Super antioxidant [vitamins & minerals] | Tablet
+ Amlex       | Amlexanox                               | Oral Paste
+ Azyth       | Azithromycin Dihydrate                  | Capsule
+ Ampirex     | Ampicillin Sodium                       | IM/IV Injection
+ Ampimet DS  | Ampicillin Sodium                       | Oral Suspension
+ Ampimet     | Ampicillin Sodium                       | Capsule
+ Ampimet     | Ampicillin Sodium                       | Capsule
+ Ampexin     | Ampicillin Sodium                       | Injection
+ Ampexin     | Ampicillin Sodium                       | Injection
+ Azyth       | Azithromycin Dihydrate                  | Tablet
+ Amzith      | Azithromycin Dihydrate                  | Tablet
+ Amzith      | Azithromycin Dihydrate                  | Capsule
+ Amzith      | Azithromycin Dihydrate                  | Powder for Suspension
+ Angipro     | Metoprolol Tartrate                     | Tablet
+ Antiscar    | Allium cepa + Heparin + Allantoin       | Topical Gel
+ Azyth       | Azithromycin Dihydrate                  | Powder for Suspension
+ Apetiz      | Megestrol Acetate                       | Tablet
+ Apetiz      | Megestrol Acetate                       | Oral Suspension
+ Apegestrol  | Megestrol Acetate                       | Tablet
+ Apit        | Megestrol Acetate                       | Tablet
+ Apit        | Megestrol Acetate                       | Tablet
+ Apsol       | Amlexanox                               | Oral Paste
+ Apozyth     | Azithromycin Dihydrate                  | Tablet
+ Apozyth     | Azithromycin Dihydrate                  | Powder for Suspension
+ Aquafresh   | Carboxymethylcellulose Sodium           | Ophthalmic Solution
+ Arnigen     | Sacubitril + Valsartan                  | Tablet
+ Arnigen     | Sacubitril + Valsartan                  | Tablet
+ Arnigen     | Sacubitril + Valsartan                  | Tablet
+ Arizith     | Azithromycin Dihydrate                  | Tablet
+ Aristovit X | Super antioxidant [vitamins & minerals] | Tablet
+ Asector     | Esomeprazole                            | Capsule (Delayed Release)
+ Asector     | Esomeprazole                            | IV Injection
+ Asector     | Esomeprazole                            | Capsule (Delayed Release)
+ Asizith     | Azithromycin Dihydrate                  | Tablet
+ Asizith     | Azithromycin Dihydrate                  | Tablet
+ Asizith     | Azithromycin Dihydrate                  | Powder for Suspension
+ Asizime     | Azithromycin Dihydrate                  | IV Infusion
+ Asizime     | Azithromycin Dihydrate                  | IV Infusion
+ Asizime     | Azithromycin Dihydrate                  | IV Infusion
+(50 rows)
+

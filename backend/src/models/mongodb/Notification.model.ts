@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface INotification extends Document {
     userId: mongoose.Types.ObjectId;
-    type: 'lab_order' | 'payment_received' | 'test_completed' | 'result_uploaded' | 'prescription_created' | 'test_assigned' | 'appointment_booked' | 'appointment_cancelled' | 'lab_request' | 'appointment';
+    type: 'lab_order' | 'payment_received' | 'test_completed' | 'result_uploaded' | 'prescription_created' | 'test_assigned' | 'appointment_booked' | 'appointment_cancelled' | 'lab_request' | 'appointment' | 'refill_request' | 'new_order';
     title: string;
     message: string;
     data?: Record<string, any>;
@@ -22,7 +22,7 @@ const NotificationSchema = new Schema<INotification>(
         },
         type: {
             type: String,
-            enum: ['lab_order', 'payment_received', 'test_completed', 'result_uploaded', 'prescription_created', 'test_assigned', 'appointment_booked', 'appointment_cancelled', 'lab_request', 'appointment'],
+            enum: ['lab_order', 'payment_received', 'test_completed', 'result_uploaded', 'prescription_created', 'test_assigned', 'appointment_booked', 'appointment_cancelled', 'lab_request', 'appointment', 'refill_request', 'new_order'],
             required: true,
             index: true,
         },

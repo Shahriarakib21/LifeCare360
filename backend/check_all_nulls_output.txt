@@ -1,0 +1,5 @@
+ name_nulls | genericname_nulls | manufacturer_nulls | category_nulls | dosageform_nulls | strength_nulls | price_nulls | storageconditions_nulls 
+------------+-------------------+--------------------+----------------+------------------+----------------+-------------+-------------------------
+          0 |                 2 |                  0 |              0 |                0 |            849 |           0 |                     622
+(1 row)
+

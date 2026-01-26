@@ -25,7 +25,7 @@ interface MedicineAttributes {
   updatedAt?: Date;
 }
 
-interface MedicineCreationAttributes extends Optional<MedicineAttributes, 'id' | 'isActive' | 'createdAt' | 'updatedAt'> {}
+interface MedicineCreationAttributes extends Optional<MedicineAttributes, 'id' | 'isActive' | 'createdAt' | 'updatedAt'> { }
 
 class Medicine extends Model<MedicineAttributes, MedicineCreationAttributes> implements MedicineAttributes {
   public id!: number;
@@ -110,7 +110,7 @@ Medicine.init(
       defaultValue: [],
     },
     storageConditions: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
     },
     expiryDate: {

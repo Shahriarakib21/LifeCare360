@@ -1,0 +1,33 @@
+ count 
+-------
+     0
+(1 row)
+
+ count 
+-------
+     0
+(1 row)
+
+              category               |       avg_price       | max_price | min_price 
+-------------------------------------+-----------------------+-----------+-----------
+ Cytotoxic immunosuppressants        | 5159.6485714285714286 |   6751.49 |    117.84
+ Cytotoxic Chemotherapy              | 5110.7617431192660550 |  12152.49 |    117.72
+ Targeted Cancer Therapy             | 1027.0140322580645161 |   7427.27 |    117.50
+ Haemostatics                        |  540.0200000000000000 |    540.02 |    540.02
+ Echinocandins                       |  493.6200000000000000 |    493.62 |    493.62
+ Parenteral nutritional preparations |  450.5761428571428571 |    493.45 |    447.57
+ Plasma expanders                    |  450.2393750000000000 |    451.73 |    447.85
+ Osmotic diuretics                   |  450.0660000000000000 |    451.78 |    449.40
+ Alpha and Beta-adrenergic agonist   |  449.7800000000000000 |    450.91 |    448.96
+ Intravenous fluid preparations      |  413.0327659574468085 |    452.34 |      5.78
+(10 rows)
+
+  name   | price  | stock 
+---------+--------+-------
+ Askorel | 118.90 |     0
+ Bpcal   |   8.19 |     0
+ Cezin   |   8.94 |     0
+ Co-axet |  18.36 |     0
+ Codliv  |   7.02 |     0
+(5 rows)
+

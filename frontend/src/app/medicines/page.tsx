@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Search, Pill, Coins, Package, ShoppingCart, Trash2, ShieldCheck, CreditCard, MapPin, CheckCircle } from 'lucide-react';
+import { Search, Pill, Coins, Package, ShoppingCart, Trash2, ShieldCheck, CreditCard, MapPin, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Card from '@/components/ui/Card';
@@ -23,6 +23,9 @@ function MedicinesContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(false);
+  const [totalResults, setTotalResults] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [selectedMedicine, setSelectedMedicine] = useState<any>(null);
   const [cart, setCart] = useState<any[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -95,7 +98,7 @@ function MedicinesContent() {
           item.id === medicine.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prev, { ...medicine, quantity: 1 }];
+      return [...prev, { ...medicine, quantity: 1, price: parseFloat(medicine.price) || 0 }];
     });
     toast.success(`${medicine.name} added to cart`);
   };
@@ -115,7 +118,10 @@ function MedicinesContent() {
   };
 
   const calculateTotal = () => {
-    return cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0).toFixed(2);
+    return cart.reduce((sum, item) => {
+      const price = parseFloat(item.price) || 0;
+      return sum + (price * item.quantity);
+    }, 0).toFixed(2);
   };
 
   const handleCheckout = async () => {
@@ -148,8 +154,9 @@ function MedicinesContent() {
         setCheckoutStep('cart');
         router.push('/patient/dashboard');
       }, 3000);
-    } catch (error) {
-      toast.error(handleApiError(error));
+    } catch (error: any) {
+      const message = error.response?.data?.message || handleApiError(error);
+      toast.error(message);
     } finally {
       setIsCheckoutLoading(false);
     }
@@ -174,8 +181,12 @@ function MedicinesContent() {
   ];
 
   useEffect(() => {
-    fetchMedicines();
+    setCurrentPage(1);
   }, [searchQuery, category]);
+
+  useEffect(() => {
+    fetchMedicines();
+  }, [searchQuery, category, currentPage]);
 
   const fetchMedicines = async () => {
     setLoading(true);
@@ -183,9 +194,13 @@ function MedicinesContent() {
       const params = new URLSearchParams();
       if (searchQuery) params.append('q', searchQuery);
       if (category && category !== 'All Categories') params.append('category', category);
+      params.append('page', currentPage.toString());
+      params.append('limit', '20');
 
       const response = await api.get(`/api/public/medicines/search?${params.toString()}`);
       setMedicines(response.data.data.medicines);
+      setTotalResults(response.data.data.pagination.total);
+      setTotalPages(response.data.data.pagination.pages);
     } catch (error) {
       toast.error(handleApiError(error));
     } finally {
@@ -246,10 +261,31 @@ function MedicinesContent() {
 
         {/* Results */}
         <section className="container-custom pb-16">
-          <div className="mb-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <h2 className="text-2xl font-bold text-secondary-900">
-              {medicines.length} Medicines Found
+              {totalResults.toLocaleString()} Medicines Found
             </h2>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1 || loading}
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" /> Previous
+              </Button>
+              <span className="text-sm font-medium text-secondary-600">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages || loading}
+              >
+                Next <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -280,6 +316,9 @@ function MedicinesContent() {
                     <Coins className="w-4 h-4 mr-2" />
                     ৳{medicine.price}
                   </div>
+                  <div className={`text-xs font-bold mt-2 ${medicine.stock > 0 ? 'text-success-600' : 'text-error-600'}`}>
+                    {medicine.stock > 0 ? `In Stock: ${medicine.stock}` : 'Out of Stock'}
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-secondary-200">
@@ -293,8 +332,9 @@ function MedicinesContent() {
                   <Button
                     size="sm"
                     onClick={() => addToCart(medicine)}
+                    disabled={medicine.stock <= 0}
                   >
-                    Add to Cart
+                    {medicine.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
                   </Button>
                 </div>
               </Card>

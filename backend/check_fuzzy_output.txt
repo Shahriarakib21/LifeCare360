@@ -1,0 +1,24 @@
+ count 
+-------
+  1834
+(1 row)
+
+ count 
+-------
+   351
+(1 row)
+
+ count 
+-------
+     1
+(1 row)
+
+   name   |             category             
+----------+----------------------------------
+ Turbocef | Second generation Cephalosporins
+ Victorin | Third generation Cephalosporins
+ Rofuclav | Second generation Cephalosporins
+ Ximeprox | Third generation Cephalosporins
+ Xorimax  | Second generation Cephalosporins
+(5 rows)
+

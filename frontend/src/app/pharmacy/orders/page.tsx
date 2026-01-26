@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, Search, Download, Eye, ShoppingBag, User, Calendar, Coins, Package } from 'lucide-react';
+import { Plus, Search, Download, Eye, ShoppingBag, User, Calendar, Coins, Package, ArrowLeft } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -21,6 +22,9 @@ export default function OrdersPage() {
     const medicines = usePharmacyStore((state) => state.medicines);
     const fetchMedicines = usePharmacyStore((state) => state.fetchMedicines);
 
+    const searchParams = useSearchParams();
+    const patientIdParam = searchParams.get('patientId');
+
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -33,10 +37,10 @@ export default function OrdersPage() {
     });
 
     React.useEffect(() => {
-        fetchOrders();
+        fetchOrders(statusFilter, patientIdParam || undefined);
         fetchMedicines();
         fetchCustomers();
-    }, [fetchOrders, fetchMedicines, fetchCustomers]);
+    }, [fetchOrders, fetchMedicines, fetchCustomers, statusFilter, patientIdParam]);
 
     const getPatientName = (patientId: string) => {
         const customer = customers.find(c => c.id === patientId);
@@ -155,8 +159,22 @@ export default function OrdersPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-secondary-900">Orders</h1>
-                    <p className="text-secondary-600 mt-1">Manage and track customer orders</p>
+                    <div className="flex items-center gap-2">
+                        {patientIdParam && (
+                            <button
+                                onClick={() => window.location.href = '/pharmacy/customers'}
+                                className="p-1 hover:bg-secondary-100 rounded-full transition-colors"
+                            >
+                                <ArrowLeft className="w-5 h-5" />
+                            </button>
+                        )}
+                        <h1 className="text-2xl font-bold text-secondary-900">
+                            {patientIdParam ? `Order History: ${getPatientName(patientIdParam)}` : 'Orders'}
+                        </h1>
+                    </div>
+                    <p className="text-secondary-600 mt-1">
+                        {patientIdParam ? `Viewing all orders for ${getPatientName(patientIdParam)}` : 'Manage and track customer orders'}
+                    </p>
                 </div>
                 <div className="flex gap-3">
                     <Button variant="ghost" onClick={handleExport}>

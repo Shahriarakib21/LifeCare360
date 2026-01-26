@@ -11,14 +11,14 @@ import toast from 'react-hot-toast';
 import { usePharmacyStore } from '@/store/pharmacyStore';
 
 interface Customer {
-    id: number;
+    id: string;
     name: string;
     email: string;
     phone: string;
-    address: string;
-    registeredDate: string;
+    profile?: any;
+    createdAt: string;
     totalOrders: number;
-    lastVisit: string;
+    lastVisit?: string;
 }
 
 export default function CustomersPage() {
@@ -125,7 +125,7 @@ export default function CustomersPage() {
 
                                 <div className="flex items-center justify-between pt-4 border-t border-secondary-100">
                                     <div className="text-center">
-                                        <p className="text-2xl font-bold text-primary-600">0</p>
+                                        <p className="text-2xl font-bold text-primary-600">{customer.totalOrders || 0}</p>
                                         <p className="text-xs text-secondary-500">Total Orders</p>
                                     </div>
                                     <div className="text-center">
@@ -204,7 +204,7 @@ export default function CustomersPage() {
 
                         <div className="grid grid-cols-3 gap-4">
                             <div className="text-center p-4 bg-secondary-50 rounded-lg">
-                                <p className="text-2xl font-bold text-primary-600">0</p>
+                                <p className="text-2xl font-bold text-primary-600">{selectedCustomer.totalOrders || 0}</p>
                                 <p className="text-xs text-secondary-600 mt-1">Total Orders</p>
                             </div>
                             <div className="text-center p-4 bg-secondary-50 rounded-lg">
@@ -215,7 +215,7 @@ export default function CustomersPage() {
                             </div>
                             <div className="text-center p-4 bg-secondary-50 rounded-lg">
                                 <p className="text-sm font-medium text-secondary-900">
-                                    N/A
+                                    {selectedCustomer.lastVisit ? new Date(selectedCustomer.lastVisit).toLocaleDateString() : 'N/A'}
                                 </p>
                                 <p className="text-xs text-secondary-600 mt-1">Last Visit</p>
                             </div>
@@ -223,7 +223,9 @@ export default function CustomersPage() {
 
                         <div className="flex gap-3 justify-end pt-4 border-t">
                             <Button variant="ghost" onClick={() => setIsDetailsModalOpen(false)}>Close</Button>
-                            <Button>
+                            <Button onClick={() => {
+                                window.location.href = `/pharmacy/orders?patientId=${selectedCustomer.id}`;
+                            }}>
                                 <FileText className="w-4 h-4 mr-2" />
                                 View History
                             </Button>

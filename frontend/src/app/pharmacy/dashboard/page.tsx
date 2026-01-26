@@ -9,6 +9,8 @@ import { PrescriptionList, type Prescription } from '@/components/pharmacy/Presc
 import { InventoryTable, type InventoryItem } from '@/components/pharmacy/InventoryTable';
 import { QuickActions } from '@/components/pharmacy/QuickActions';
 import { Pill, AlertTriangle, ShoppingBag, FileClock } from 'lucide-react';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
 
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -50,7 +52,7 @@ export default function PharmacyDashboardPage() {
         status: m.status
     }));
 
-    const setInventory = (updater: React.SetStateAction<InventoryItem[]>) => {
+    const setInventory = React.useCallback((updater: React.SetStateAction<InventoryItem[]>) => {
         const newInventory = typeof updater === 'function' ? updater(inventory) : updater;
         const currentIds = new Set(inventory.map(i => i.id));
         const newIds = new Set(newInventory.map(i => i.id));
@@ -80,7 +82,7 @@ export default function PharmacyDashboardPage() {
                 deleteMedicine(item.id);
             }
         });
-    };
+    }, [inventory, addMedicine, updateMedicine, deleteMedicine]);
 
     const stats = useMemo(() => {
         if (backendStats) {

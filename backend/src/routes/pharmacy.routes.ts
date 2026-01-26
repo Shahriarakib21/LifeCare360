@@ -15,6 +15,7 @@ import {
   getCustomers,
   updateRefillStatus,
   payOrder,
+  createRefillRequest,
 } from '../controllers/pharmacy.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 
@@ -36,6 +37,7 @@ router.get('/orders', authorize('patient', 'pharmacy', 'admin'), getOrders);
 router.patch('/orders/:orderId/pay', authorize('patient'), payOrder);
 
 // Refills
+router.post('/refills', authorize('patient'), createRefillRequest);
 router.get('/refill-notifications', authorize('pharmacy', 'admin'), getRefillNotifications);
 router.put('/refills/:id', authorize('pharmacy', 'admin'), updateRefillStatus);
 router.get('/refills/my', authorize('patient'), getRefillNotifications); // For patients to see their own if needed

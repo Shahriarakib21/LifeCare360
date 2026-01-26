@@ -9,7 +9,7 @@ import User from '../models/mongodb/User.model';
 import RefillRequest from '../models/mongodb/RefillRequest.model';
 import { sequelize } from '../config/database';
 import { getIO } from '../utils/socket';
-import { notifyRefillUpdate, notifyOrderStatusUpdate } from '../utils/notifications';
+import { notifyRefillUpdate, notifyOrderStatusUpdate, notifyRefillRequest, notifyNewOrder } from '../utils/notifications';
 import RevenueTransaction from '../models/mongodb/RevenueTransaction.model';
 import UnifiedPayment from '../models/mongodb/UnifiedPayment.model';
 import { logger } from '../utils/logger';
@@ -23,26 +23,54 @@ export const searchMedicines = async (
   try {
     const { q, category, page = 1, limit = 20 } = req.query;
 
-    const query: any = {
-      isActive: true,
-    };
+    const where: any[] = [{ isActive: true }];
 
     if (q) {
-      query[Op.or] = [
-        { name: { [Op.iLike]: `%${q}%` } },
-        { genericName: { [Op.iLike]: `%${q}%` } },
-        { description: { [Op.iLike]: `%${q}%` } },
-      ];
+      where.push({
+        [Op.or]: [
+          { name: { [Op.iLike]: `%${q}%` } },
+          { genericName: { [Op.iLike]: `%${q}%` } },
+          { description: { [Op.iLike]: `%${q}%` } },
+        ],
+      });
     }
 
-    if (category) {
-      query.category = category;
+    if (category && category !== 'All Categories') {
+      const categoryMap: { [key: string]: string[] } = {
+        'Antibiotic': ['Cephalosporins', 'penicillins', 'Macrolides', 'Tetracycline', 'Aminoglycosides', 'Antibiotics', 'Sulphonamides'],
+        'Pain Reliever': ['analgesics', 'NSAIDs', 'Osteoarthritis', 'Arthritis', 'Gout'],
+        'Antihistamine': ['antihistamines', 'Anti-histamine'],
+        'Antacid': ['Proton Pump Inhibitor', 'Antacids', 'H2 receptor antagonist'],
+        'Vitamin': ['vitamin', 'mineral', 'Iron']
+      };
+
+      if (category === 'Other') {
+        const allKnownTerms = Object.values(categoryMap).flat();
+        where.push({
+          [Op.and]: allKnownTerms.map(term => ({
+            category: { [Op.notILike]: `%${term}%` }
+          }))
+        });
+      } else if (categoryMap[category as string]) {
+        const terms = categoryMap[category as string];
+        where.push({
+          [Op.or]: terms.map(term => ({
+            category: { [Op.iLike]: `%${term}%` }
+          }))
+        });
+      } else {
+        where.push({
+          category: { [Op.iLike]: `%${category}%` }
+        });
+      }
     }
+
+    logger.info('Final Medicine Query: ' + JSON.stringify(where, null, 2));
 
     const offset = (Number(page) - 1) * Number(limit);
 
     const { count, rows } = await Medicine.findAndCountAll({
-      where: query,
+      where: { [Op.and]: where },
       limit: Number(limit),
       offset,
       order: [['name', 'ASC']],
@@ -158,13 +186,14 @@ export const createOrder = async (
         throw new AppError(`Insufficient stock for ${medicine.name}`, 400);
       }
 
-      const itemTotal = Number(medicine.price) * item.quantity;
+      const price = Number(medicine.price) || 0;
+      const itemTotal = price * item.quantity;
       totalAmount += itemTotal;
 
       orderItems.push({
         medicineId: medicine.id,
         quantity: item.quantity,
-        price: Number(medicine.price),
+        price: price,
         name: medicine.name,
       });
 
@@ -196,6 +225,25 @@ export const createOrder = async (
     // Commit transaction
     await transaction.commit();
 
+    // Notify pharmacy staff
+    try {
+      const pharmacyUsers = await User.find({ role: 'pharmacy', isActive: true });
+      if (pharmacyUsers.length > 0 && getIO()) {
+        const patientUser = await User.findById(userId);
+        const patientName = patientUser?.profile ? `${patientUser.profile.firstName} ${patientUser.profile.lastName}` : (patientUser?.email || 'Unknown Patient');
+
+        await notifyNewOrder(
+          getIO(),
+          pharmacyUsers.map(u => u._id.toString()),
+          patientName,
+          order.id.toString(),
+          totalAmount
+        );
+      }
+    } catch (notifError) {
+      logger.error('Failed to notify pharmacy about new order:', notifError);
+    }
+
     // Unified Payment Integration
     try {
       const vatAmount = Math.round(totalAmount * 0.05);
@@ -210,12 +258,15 @@ export const createOrder = async (
         vatAmount,
         serviceCharge,
         totalAmount: totalAmount + vatAmount + serviceCharge,
-        itemBreakdown: orderItems.map(item => ({
-          name: item.name,
-          quantity: item.quantity,
-          unitPrice: item.price,
-          total: item.price * item.quantity
-        })),
+        itemBreakdown: orderItems.map(item => {
+          const itemPrice = Number(item.price) || 0;
+          return {
+            name: item.name,
+            quantity: item.quantity,
+            unitPrice: itemPrice,
+            total: itemPrice * item.quantity
+          }
+        }),
         expiresAt: new Date(Date.now() + 30 * 60 * 1000),
         metadata: {
           pharmacyName: 'Central Pharmacy',
@@ -253,9 +304,10 @@ export const getOrders = async (
     // If patient, only show their orders
     if (user.role === 'patient') {
       query.patientId = user.id;
+    } else if ((user.role === 'pharmacy' || user.role === 'admin') && req.query.patientId) {
+      // If pharmacy/admin, allow filtering by patientId if provided
+      query.patientId = req.query.patientId;
     }
-    // If pharmacy/admin, show all (or filter by patientId if provided in query?)
-    // For now, show all.
 
     if (status) {
       query.status = status;
@@ -326,6 +378,59 @@ export const getRefillNotifications = async (
     res.json({
       success: true,
       data: formattedRefills,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Create Refill Request (for patients)
+export const createRefillRequest = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { prescriptionId, medication, quantity, notes } = req.body;
+
+    if (!prescriptionId || !medication || !quantity) {
+      throw new AppError('Prescription ID, medication, and quantity are required', 400);
+    }
+
+    // Create refill request in MongoDB
+    const refill = await RefillRequest.create({
+      patientId: userId,
+      prescriptionId,
+      medication,
+      quantity,
+      notes,
+      status: 'pending'
+    });
+
+    // Notify pharmacy staff
+    try {
+      const pharmacyUsers = await User.find({ role: 'pharmacy', isActive: true });
+      if (pharmacyUsers.length > 0 && getIO()) {
+        const patientUser = await User.findById(userId);
+        const patientName = patientUser?.profile ? `${patientUser.profile.firstName} ${patientUser.profile.lastName}` : (patientUser?.email || 'Unknown Patient');
+
+        await notifyRefillRequest(
+          getIO(),
+          pharmacyUsers.map(u => u._id.toString()),
+          patientName,
+          medication,
+          refill._id.toString()
+        );
+      }
+    } catch (notifError) {
+      logger.error('Failed to notify pharmacy about refill request:', notifError);
+    }
+
+    res.status(201).json({
+      success: true,
+      data: refill,
+      message: 'Refill request submitted successfully'
     });
   } catch (error) {
     next(error);
@@ -626,16 +731,47 @@ export const getCustomers = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Get all users with role 'patient' or finding those with orders
-    // Since we don't have a direct link from SQL Order -> Mongo User easily in a single query,
-    // we can fetch users from Mongo who are patients.
-    const customers = await User.find({ role: 'patient' })
+    // Get all users with role 'patient'
+    const customers = await User.find({ role: 'patient', isActive: true })
       .select('name email phone profile createdAt')
-      .limit(50);
+      .limit(100)
+      .lean();
+
+    // Fetch total order counts and last visit from PostgreSQL for these customers
+    const patientIds = customers.map(c => c._id.toString());
+    const orderStats = await Order.findAll({
+      attributes: [
+        'patientId',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'totalOrders'],
+        [sequelize.fn('MAX', sequelize.col('createdAt')), 'lastVisit']
+      ],
+      where: {
+        patientId: { [Op.in]: patientIds }
+      },
+      group: ['patientId'],
+      raw: true
+    });
+
+    // Create a map for quick lookup
+    const statsMap = orderStats.reduce((acc: any, curr: any) => {
+      acc[curr.patientId] = {
+        totalOrders: parseInt(curr.totalOrders) || 0,
+        lastVisit: curr.lastVisit
+      };
+      return acc;
+    }, {});
+
+    // Attach totalOrders to each customer
+    const customersWithStats = customers.map(customer => ({
+      ...customer,
+      id: customer._id.toString(), // Add id for frontend consistency
+      totalOrders: statsMap[customer._id.toString()]?.totalOrders || 0,
+      lastVisit: statsMap[customer._id.toString()]?.lastVisit || null
+    }));
 
     res.json({
       success: true,
-      data: { customers },
+      data: { customers: customersWithStats },
     });
   } catch (error) {
     next(error);

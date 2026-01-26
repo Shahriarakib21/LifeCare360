@@ -1,0 +1,17 @@
+            quote_ident             
+------------------------------------
+ "First generation Cephalosporins"
+ "Fourth generation Cephalosporins"
+ "Second generation Cephalosporins"
+ "Third generation Cephalosporins"
+(4 rows)
+
+             category             | length 
+----------------------------------+--------
+ Second generation Cephalosporins |     32
+ Third generation Cephalosporins  |     31
+ Second generation Cephalosporins |     32
+ Third generation Cephalosporins  |     31
+ Second generation Cephalosporins |     32
+(5 rows)
+

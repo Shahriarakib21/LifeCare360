@@ -13,7 +13,8 @@ import {
   LogOut,
   Settings,
   Shield,
-  Pill
+  Pill,
+  FlaskConical
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Button from '@/components/ui/Button';
@@ -253,6 +254,11 @@ const Header: React.FC<HeaderProps> = ({ user: propUser, onLogout }) => {
           if (storeUser.role === 'patient') link = '/patient/reports';
         } else if (n.type === 'prescription' || n.type === 'prescription_created') {
           if (storeUser.role === 'patient') link = '/patient/prescriptions';
+          else if (storeUser.role === 'pharmacy') link = '/pharmacy/prescriptions';
+        } else if (n.type === 'lab_order' || n.data?.type === 'new_order') {
+          if (storeUser.role === 'pharmacy') link = '/pharmacy/orders';
+        } else if (n.data?.type === 'refill_request') {
+          if (storeUser.role === 'pharmacy') link = '/pharmacy/refills';
         }
 
         return {
@@ -307,6 +313,11 @@ const Header: React.FC<HeaderProps> = ({ user: propUser, onLogout }) => {
           if (storeUser.role === 'patient') link = '/patient/reports';
         } else if (n.type === 'prescription' || n.type === 'prescription_created') {
           if (storeUser.role === 'patient') link = '/patient/prescriptions';
+          else if (storeUser.role === 'pharmacy') link = '/pharmacy/prescriptions';
+        } else if (n.type === 'lab_order' || n.data?.type === 'new_order') {
+          if (storeUser.role === 'pharmacy') link = '/pharmacy/orders';
+        } else if (n.data?.type === 'refill_request') {
+          if (storeUser.role === 'pharmacy') link = '/pharmacy/refills';
         }
 
         const formatted = {

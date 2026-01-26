@@ -97,7 +97,7 @@ function PaymentPageContent() {
                         </div>
                         <div className="flex justify-between">
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount Paid</span>
-                            <span className="text-sm font-black text-green-600">৳{payment.totalAmount.toLocaleString()}</span>
+                            <span className="text-sm font-black text-green-600">৳{(Number(payment.totalAmount) || 0).toLocaleString()}</span>
                         </div>
                     </div>
 
@@ -138,7 +138,7 @@ function PaymentPageContent() {
                                             <p className="font-black text-slate-800 text-sm uppercase">{item.name}</p>
                                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Qty: {item.quantity}</p>
                                         </div>
-                                        <p className="font-black text-slate-900">৳{item.total.toLocaleString()}</p>
+                                        <p className="font-black text-slate-900">৳{(Number(item.total) || 0).toLocaleString()}</p>
                                     </div>
                                 ))}
                             </div>
@@ -146,19 +146,19 @@ function PaymentPageContent() {
                             <div className="space-y-3 pt-6 border-t border-slate-100">
                                 <div className="flex justify-between text-slate-500 font-bold text-sm">
                                     <span>Subtotal</span>
-                                    <span>৳{payment.baseAmount.toLocaleString()}</span>
+                                    <span>৳{(Number(payment.baseAmount) || 0).toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between text-slate-500 font-bold text-sm">
                                     <span>VAT (5%)</span>
-                                    <span>৳{payment.vatAmount.toLocaleString()}</span>
+                                    <span>৳{(Number(payment.vatAmount) || 0).toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between text-slate-500 font-bold text-sm">
                                     <span>Service Charge (2%)</span>
-                                    <span>৳{payment.serviceCharge.toLocaleString()}</span>
+                                    <span>৳{(Number(payment.serviceCharge) || 0).toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between pt-4 text-2xl font-black text-slate-900 italic">
                                     <span>Total Payable</span>
-                                    <span className="text-cyan-600">৳{payment.totalAmount.toLocaleString()}</span>
+                                    <span className="text-cyan-600">৳{(Number(payment.totalAmount) || 0).toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
@@ -195,8 +195,8 @@ function PaymentPageContent() {
                                             key={method}
                                             onClick={() => setSelectedMethod(method as any)}
                                             className={`w-full p-6 rounded-2xl border-2 transition-all flex items-center justify-between ${selectedMethod === method
-                                                    ? 'border-cyan-500 bg-cyan-500/10 text-white'
-                                                    : 'border-white/5 bg-white/5 text-white/40 hover:border-white/10'
+                                                ? 'border-cyan-500 bg-cyan-500/10 text-white'
+                                                : 'border-white/5 bg-white/5 text-white/40 hover:border-white/10'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-4">

@@ -1,0 +1,4 @@
+ id | name | description | indications 
+----+------+-------------+-------------
+(0 rows)
+

@@ -45,14 +45,14 @@ const Logo: React.FC<LogoProps> = ({
 
     // Map standardized sizes to Tailwind classes or style objects
     const sizeClasses = {
-        sm: 'h-8',
-        md: 'h-12',
-        lg: 'h-16',
-        xl: 'h-24',
-        header: 'h-8 md:h-11', // Mobile 32px, Desktop 44px
-        auth: 'h-12 md:h-18',   // Mobile 48px, Desktop 72px
-        sidebar: 'w-full max-w-[120px]',
-        footer: 'h-6 md:h-7',   // 24-28px
+        sm: 'h-8 w-auto',
+        md: 'h-12 w-auto',
+        lg: 'h-16 w-auto',
+        xl: 'h-24 w-auto',
+        header: 'h-8 md:h-11 w-auto', // Mobile 32px, Desktop 44px
+        auth: 'h-16 md:h-20 w-auto',   // Increased size for auth pages
+        sidebar: 'h-12 md:h-14 w-auto', // Fixed sidebar logo height
+        footer: 'h-6 md:h-7 w-auto',   // 24-28px
     };
 
     return (
@@ -64,7 +64,7 @@ const Logo: React.FC<LogoProps> = ({
             )}
             aria-label="LifeCare360 Home"
         >
-            <div className={cn("relative flex-shrink-0", sizeClasses[size as keyof typeof sizeClasses])}>
+            <div className={cn("relative flex-shrink-0 flex items-center justify-center", sizeClasses[size as keyof typeof sizeClasses])}>
                 <Image
                     src={variant === 'horizontal' ? '/logo_horizontal.png' : '/logo_square.png'}
                     alt="LifeCare360 Logo"
@@ -72,9 +72,9 @@ const Logo: React.FC<LogoProps> = ({
                     height={500}
                     priority
                     className={cn(
-                        "object-contain w-auto h-full transition-all duration-300",
+                        "object-contain h-full w-auto transition-all duration-300",
                         theme === 'dark' && "brightness-0 invert",
-                        theme === 'light' && "brightness-0",
+                        theme === 'light' && "brightness-100", // Ensure no darkening for light theme
                     )}
                 />
             </div>

@@ -88,7 +88,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="relative z-10">
-          <Logo size="xl" variant="horizontal" theme="dark" />
+          <Logo size="xl" variant="horizontal" />
         </div>
 
         <div className="relative z-10 space-y-12">
@@ -124,8 +124,8 @@ export default function RegisterPage() {
       <div className="flex flex-col items-center justify-center p-6 bg-white sm:p-12 lg:bg-slate-50 overflow-y-auto">
         <div className="w-full max-w-2xl space-y-8 animate-fade-in py-8">
           <div className="text-center space-y-2">
-            <div className="mb-6 flex justify-center transform hover:scale-105 transition-transform duration-300">
-              <Logo size="auth" variant="square" theme="light" />
+            <div className="mb-6 flex justify-center transform hover:scale-110 transition-transform duration-300">
+              <Logo size="auth" variant="horizontal" />
             </div>
             <h1 className="text-4xl font-extrabold text-slate-900">Create your account</h1>
             <p className="text-slate-500">Join the universal health ecosystem today.</p>

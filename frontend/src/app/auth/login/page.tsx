@@ -113,7 +113,7 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10">
-          <Logo size="xl" variant="horizontal" theme="dark" />
+          <Logo size="xl" variant="horizontal" />
         </div>
 
         <div className="relative z-10 space-y-6">
@@ -145,8 +145,8 @@ export default function LoginPage() {
       <div className="flex items-center justify-center p-6 bg-white sm:p-12 lg:bg-slate-50">
         <div className="w-full max-w-md space-y-8 animate-fade-in">
           <div className="flex flex-col items-center text-center">
-            <div className="mb-8 transform hover:scale-105 transition-transform duration-300">
-              <Logo size="auth" variant="square" theme="light" />
+            <div className="mb-8 transform hover:scale-110 transition-transform duration-300">
+              <Logo size="auth" variant="horizontal" />
             </div>
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Login to your account</h1>
             <p className="mt-2 text-slate-500">Secure access to your medical dashboard</p>

@@ -38,7 +38,12 @@ const Logo: React.FC<LogoProps> = ({
             hospital: '/hospital/dashboard',
             insurance: '/insurance/dashboard',
         };
-        return routes[user.role] || '/';
+
+        const role = user.role?.toLowerCase();
+        // Handle common typos or case issues
+        if (role === 'paitent') return routes['patient'];
+
+        return routes[role] || '/';
     };
 
     const homeRoute = getHomeRoute();

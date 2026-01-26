@@ -48,3 +48,19 @@ export const getIO = (): Server => {
     }
     return io;
 };
+
+/**
+ * Send a real-time notification to a specific user
+ * @param userId The ID of the user to notify
+ * @param notification The notification object to send
+ */
+export const sendNotificationToUser = (userId: string, notification: any) => {
+    try {
+        const io = getIO();
+        // Emit to the user's specific room (joined by frontend on login)
+        io.to(userId.toString()).emit('notification', notification);
+        logger.info(`Notification sent to user ${userId}: ${notification.type}`);
+    } catch (error) {
+        logger.error(`Failed to send notification to user ${userId}:`, error);
+    }
+};

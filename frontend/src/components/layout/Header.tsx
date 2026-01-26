@@ -298,6 +298,10 @@ const Header: React.FC<HeaderProps> = ({ user: propUser, onLogout }) => {
 
       socket.on('connect', () => {
         console.log('Socket connected (Header)');
+        if (storeUser?.id) {
+          socket.emit('join-room', storeUser.id);
+          console.log(`Joined room: ${storeUser.id}`);
+        }
       });
 
       socket.on('notification', (n: any) => {
@@ -895,6 +899,15 @@ const Header: React.FC<HeaderProps> = ({ user: propUser, onLogout }) => {
                               <p className="text-sm font-medium text-secondary-500">No notifications</p>
                             </div>
                           )}
+                        </div>
+                        <div className="p-3 border-t border-secondary-200 bg-secondary-50/50">
+                          <Link
+                            href="/notifications"
+                            className="block w-full text-center text-sm font-bold text-primary-600 hover:text-primary-700 transition-colors py-1"
+                            onClick={() => setIsNotificationsOpen(false)}
+                          >
+                            View all notifications
+                          </Link>
                         </div>
                       </motion.div>
                     </>

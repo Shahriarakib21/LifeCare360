@@ -553,6 +553,7 @@ export const createPrescription = async (
     // Notify pharmacy staff
     try {
       if (getIO()) {
+        // Notify Pharmacy
         const pharmacyUsers = await User.find({ role: 'pharmacy' });
         const doctorName = `${doctorUser.profile?.firstName || ''} ${doctorUser.profile?.lastName || ''}`.trim() || doctorUser.email;
         const patientName = `${patientUser.profile?.firstName || ''} ${patientUser.profile?.lastName || ''}`.trim() || patientUser.email;
@@ -569,9 +570,25 @@ export const createPrescription = async (
           ).catch(err => logger.error(`Failed to notify pharmacy user ${pharmacyUser._id}:`, err));
         }
         logger.info(`Notified ${pharmacyUsers.length} pharmacy users about new prescription`);
+
+        // Notify Patient
+        const { createNotification, sendRealtimeNotification } = await import('../utils/notifications');
+        const patientNotification = await createNotification(
+          patient._id, // Use patient._id (which refers to Mongo ID of Patient model? No, Notification needs userId)
+          // Wait, patient._id in createPrescription comes from `Patient.findById(patientId)`. 
+          // Patient model has `userId`. Notification model wants `userId`.
+          // So we should use `patient.userId`.
+          patient.userId!,
+          'prescription_created',
+          'New Prescription Received',
+          `Dr. ${doctorName} has issued a new prescription for you.`,
+          { prescriptionId: ehr._id.toString(), doctorName }
+        );
+        sendRealtimeNotification(getIO(), patient.userId!.toString(), patientNotification);
+        logger.info(`Notified patient ${patient.userId} about new prescription`);
       }
     } catch (notifyError) {
-      logger.error('Failed to send pharmacy notifications:', notifyError);
+      logger.error('Failed to send notifications:', notifyError);
     }
 
     res.status(201).json({

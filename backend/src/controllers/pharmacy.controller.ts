@@ -175,6 +175,7 @@ export const createOrder = async (
     // Validate and calculate total
     let totalAmount = 0;
     const orderItems = [];
+    const lowStockItems: { name: string, stock: number }[] = [];
 
     for (const item of medicines) {
       const medicine = await Medicine.findByPk(item.medicineId, { transaction });
@@ -198,10 +199,18 @@ export const createOrder = async (
       });
 
       // Deduction: Update medicine stock
+      const newStock = medicine.stock - item.quantity;
       await medicine.update(
-        { stock: medicine.stock - item.quantity },
+        { stock: newStock },
         { transaction }
       );
+
+      if (newStock <= 20) {
+        lowStockItems.push({
+          name: medicine.name,
+          stock: newStock
+        });
+      }
     }
 
     // Assign to a pharmacy user for revenue attribution
@@ -242,6 +251,49 @@ export const createOrder = async (
       }
     } catch (notifError) {
       logger.error('Failed to notify pharmacy about new order:', notifError);
+    }
+
+    // Low Stock Alerts
+    try {
+      if (lowStockItems.length > 0 && getIO()) {
+        const { createNotification, sendRealtimeNotification } = await import('../utils/notifications');
+        const pharmacyUsers = await User.find({ role: 'pharmacy', isActive: true });
+
+        for (const item of lowStockItems) {
+          for (const pUser of pharmacyUsers) {
+            const notification = await createNotification(
+              pUser._id,
+              'refill_request', // Using refill_request type as proxy for stock alert or need new type? 'lab_order' etc are limited. Type constraint in model?
+              // The model allows 'refill_request'. Let's use that or 'new_order' or just a generic one if validation allows. 
+              // Model types: 'lab_order' | 'payment_received' | 'test_completed' | 'result_uploaded' | 'prescription_created' | 'test_assigned' | 'appointment_booked' | 'appointment_cancelled' | 'lab_request' | 'appointment' | 'refill_request' | 'new_order'
+              // 'refill_request' seems most appropriate semantically for "please refill stock".
+              'Low Stock Alert',
+              `Warning: ${item.name} stock is low (${item.stock} units remaining).`,
+              { medicineName: item.name, stock: item.stock, type: 'low_stock' }
+            );
+            sendRealtimeNotification(getIO(), pUser._id.toString(), notification);
+          }
+        }
+      }
+    } catch (stockError) {
+      logger.error('Failed to send low stock alerts:', stockError);
+    }
+
+    // Notify patient about order creation
+    try {
+      if (getIO()) {
+        const { createNotification, sendRealtimeNotification } = await import('../utils/notifications');
+        const notification = await createNotification(
+          userId,
+          'new_order', // Type
+          'Order Placed Successfully',
+          `Your medicine order #${order.id} has been placed successfully. Amount: ৳${totalAmount}`,
+          { orderId: order.id, type: 'new_order' }
+        );
+        sendRealtimeNotification(getIO(), userId, notification);
+      }
+    } catch (patientNotifError) {
+      logger.error('Failed to notify patient about new order:', patientNotifError);
     }
 
     // Unified Payment Integration
@@ -632,8 +684,12 @@ export const updateOrderStatus = async (
     await order.save();
 
     // Notify patient
-    if (getIO()) {
-      await notifyOrderStatusUpdate(getIO(), order.patientId.toString(), order.id.toString(), status || paymentStatus || 'updated');
+    try {
+      if (getIO()) {
+        await notifyOrderStatusUpdate(getIO(), order.patientId.toString(), order.id.toString(), status || paymentStatus || 'updated');
+      }
+    } catch (notifError) {
+      logger.error('Failed to notify patient about order update:', notifError);
     }
 
     res.json({

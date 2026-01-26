@@ -33,115 +33,7 @@ interface Appointment {
     isRated?: boolean;
 }
 
-const MOCK_DOCTORS = [
-    // A - Allergists
-    { id: '1', firstName: 'Alice', lastName: 'Johnson', specialization: 'Allergist/Immunologist', diseases: 'Allergies, Asthma, Eczema, Hay Fever, Hives, Immune Deficiency, Anaphylaxis' },
 
-    // A - Anesthesiologists
-    { id: '2', firstName: 'Mark', lastName: 'Davis', specialization: 'Anesthesiologist (Pain Management)', diseases: 'Chronic Pain, Back Pain, Fibromyalgia, Nerve Pain, Post-Surgical Pain' },
-
-    // C - Cardiologists
-    { id: '3', firstName: 'Sarah', lastName: 'Wilson', specialization: 'Cardiologist', diseases: 'Heart Attack, Arrhythmia, Hypertension, Heart Failure, CAD, Aortic Stenosis, Cardiomyopathy' },
-
-    // C - Colon and Rectal Surgeons
-    { id: '4', firstName: 'Gary', lastName: 'Thompson', specialization: 'Colon and Rectal Surgeon', diseases: 'Hemorrhoids, Colon Cancer, Diverticulitis, IBD, Fissures' },
-
-    // D - Dentists
-    { id: '5', firstName: 'Richard', lastName: 'Martinez', specialization: 'Dentist', diseases: 'Toothache, Cavity, Gum Bleeding, Gingivitis, Periodontitis, Impacted Wisdom Teeth' },
-
-    // D - Dermatologists
-    { id: '6', firstName: 'James', lastName: 'Chen', specialization: 'Dermatologist', diseases: 'Acne, Eczema, Psoriasis, Melanoma, Rosacea, Vitiligo, Chickenpox, Shingles, Hives' },
-
-    // E - Emergency Medicine
-    { id: '7', firstName: 'Steven', lastName: 'Clark', specialization: 'Emergency Medicine Specialist', diseases: 'Trauma, Serious Injury, Sudden Illness, Heart Attack, Stroke, Poisoning' },
-
-    // E - Endocrinologists
-    { id: '8', firstName: 'Patricia', lastName: 'Hernandez', specialization: 'Endocrinologist', diseases: 'Diabetes Type 1 & 2, Thyroid Disorders, PCOS, Addison\'s Disease, Cushing\'s Syndrome' },
-
-    // E - ENT Specialists
-    { id: '9', firstName: 'Robert', lastName: 'Taylor', specialization: 'ENT Specialist', diseases: 'Sinusitis, Tonsillitis, Ear Infections, Hearing Loss, Tinnitus, Vertigo, Sleep Apnea' },
-
-    // G - Gastroenterologists
-    { id: '10', firstName: 'Christopher', lastName: 'Lee', specialization: 'Gastroenterologist', diseases: 'IBS, Crohn\'s Disease, Ulcerative Colitis, GERD, Hepatitis, Cirrhosis, Celiac Disease' },
-
-    // G - Geneticists
-    { id: '11', firstName: 'Helen', lastName: 'Wu', specialization: 'Geneticist', diseases: 'Genetic Disorders, Down Syndrome, Cystic Fibrosis, Huntington\'s Disease, Sickle Cell' },
-
-    // G - Geriatricians
-    { id: '12', firstName: 'Betty', lastName: 'White', specialization: 'Geriatrician', diseases: 'Dementia, Alzheimer\'s, Osteoporosis, Frailty, Incontinence (Elderly Care)' },
-
-    // G - Gynecologists / OB-GYN
-    { id: '13', firstName: 'Jennifer', lastName: 'Davis', specialization: 'Gynecologist', diseases: 'Womens Health, Pregnancy, PCOD, Endometriosis, Menopause, Fibroids, Cervical Cancer' },
-
-    // H - Hematologists
-    { id: '14', firstName: 'Steven', lastName: 'King', specialization: 'Hematologist', diseases: 'Anemia, Hemophilia, Leukemia, Lymphoma, Sickle Cell Disease, DVT, Thalassemia' },
-
-    // I - Infectious Disease
-    { id: '15', firstName: 'Amanda', lastName: 'Wright', specialization: 'Infectious Disease Specialist', diseases: 'Influenza, HIV/AIDS, Malaria, Lyme Disease, Dengue, Covid-19, Tuberculosis' },
-
-    // I - Internists
-    { id: '16', firstName: 'George', lastName: 'Baker', specialization: 'Internist', diseases: 'Hypertension, Diabetes, Fatigue, Respiratory Infections, Digestive Issues' },
-
-    // N - Nephrologists
-    { id: '17', firstName: 'Daniel', lastName: 'Kim', specialization: 'Nephrologist', diseases: 'Kidney Stones, Chronic Kidney Disease, UTI, Kidney Failure, Glomerulonephritis' },
-
-    // N - Neurologists
-    { id: '18', firstName: 'Emily', lastName: 'Parker', specialization: 'Neurologist', diseases: 'Acute Flaccid Myelitis (AFM), Alzheimer\'s, ALS, Migraine, Epilepsy, Stroke, Parkinson\'s, MS' },
-
-    // O - Oncologists
-    { id: '19', firstName: 'Brian', lastName: 'Murphy', specialization: 'Oncologist', diseases: 'Breast Cancer, Prostate Cancer, Colon Cancer, Lung Cancer, Leukemia, Lymphoma' },
-
-    // O - Ophthalmologists
-    { id: '20', firstName: 'William', lastName: 'Anderson', specialization: 'Ophthalmologist', diseases: 'Cataracts, Glaucoma, Macular Degeneration, Diabetic Retinopathy, Dry Eye' },
-
-    // O - Orthopedists
-    { id: '21', firstName: 'Michael', lastName: 'Chang', specialization: 'Orthopedist', diseases: 'Arthritis, Osteoporosis, Fractures, Scoliosis, Back Pain, Sciatica, ACL Tear' },
-
-    // O - Osteopaths
-    { id: '22', firstName: 'Andrew', lastName: 'Scott', specialization: 'Osteopath', diseases: 'Musculoskeletal Pain, Joint Issues, Back Pain, Neck Pain, Sports Injuries' },
-
-    // P - Pathologists
-    { id: '23', firstName: 'Karen', lastName: 'Young', specialization: 'Pathologist', diseases: 'Diagnostic Lab Analysis, Tissue Biopsy, Blood Analysis, Cancer Diagnosis' },
-
-    // P - Pediatricians
-    { id: '24', firstName: 'Lisa', lastName: 'Thompson', specialization: 'Pediatrician', diseases: 'Child Care, Vaccination, Growth Issues, Childhood Infections, ADHD' },
-
-    // P - Physiatrists
-    { id: '25', firstName: 'Paul', lastName: 'Evans', specialization: 'Physiatrist', diseases: 'Rehabilitation, Stroke Recovery, Spinal Cord Injury, Brain Injury, Sports Rehab' },
-
-    // P - Plastic Surgeons
-    { id: '26', firstName: 'Jessica', lastName: 'Roberts', specialization: 'Plastic Surgeon', diseases: 'Reconstructive Surgery, Burns, Cleft Lip, Scar Revision, Cosmetic Procedures' },
-
-    // P - Podiatrists
-    { id: '27', firstName: 'Frank', lastName: 'Miller', specialization: 'Podiatrist', diseases: 'Foot Pain, Bunions, Ingrown Toenails, Heel Pain, Diabetic Foot Care' },
-
-    // P - Psychiatrists
-    { id: '28', firstName: 'David', lastName: 'Miller', specialization: 'Psychiatrist', diseases: 'Depression, Anxiety, Bipolar, Schizophrenia, PTSD, OCD, ADHD, Eating Disorders' },
-
-    // P - Pulmonologists
-    { id: '29', firstName: 'Thomas', lastName: 'White', specialization: 'Pulmonologist', diseases: 'Asthma, COPD, Bronchitis, Pneumonia, Lung Cancer, Sleep Apnea, Cystic Fibrosis' },
-
-    // R - Radiologists
-    { id: '30', firstName: 'Ryan', lastName: 'Cooper', specialization: 'Radiologist', diseases: 'X-Ray, MRI, CT Scan, Ultrasound, Mammography Interpretation' },
-
-    // R - Rheumatologists
-    { id: '31', firstName: 'Karen', lastName: 'Scott', specialization: 'Rheumatologist', diseases: 'Rheumatoid Arthritis, Lupus, Gout, Scleroderma, Vasculitis' },
-
-    // S - Sleep Medicine
-    { id: '32', firstName: 'Samuel', lastName: 'Green', specialization: 'Sleep Medicine Specialist', diseases: 'Insomnia, Sleep Apnea, Narcolepsy, Restless Leg Syndrome' },
-
-    // S - Sports Medicine
-    { id: '33', firstName: 'Kevin', lastName: 'Brooks', specialization: 'Sports Medicine Specialist', diseases: 'Sprains, Strains, Tendonitis, Concussion, Fractures, Overuse Injuries' },
-
-    // S - Surgeons (General)
-    { id: '34', firstName: 'Susan', lastName: 'Carter', specialization: 'General Surgeon', diseases: 'Appendicitis, Hernia, Gallbladder Removal, Thyroid Surgery, Trauma Surgery' },
-
-    // U - Urologists
-    { id: '35', firstName: 'Daniel', lastName: 'Kim', specialization: 'Urologist', diseases: 'Kidney Stones, Prostate Enlargement, Urinary Incontinence, ED' },
-
-    // V - Vascular Surgeons
-    { id: '36', firstName: 'Victor', lastName: 'Hugo', specialization: 'Vascular Surgeon', diseases: 'Varicose Veins, Peripheral Artery Disease, Aneurysm, DVT, Carotid Artery Disease' }
-];
 
 export default function AppointmentsPage() {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -206,126 +98,15 @@ export default function AppointmentsPage() {
             const res = await api.get('/api/public/doctors/search?limit=50');
             const apiDoctors = res.data.data.doctors || [];
 
-            if (apiDoctors.length > 0) {
-                setDoctors(apiDoctors);
-            } else {
-                setDoctors(MOCK_DOCTORS);
-            }
+            setDoctors(apiDoctors);
         } catch (error) {
             console.error('Failed to fetch doctors:', error);
-            setDoctors(MOCK_DOCTORS);
+            setDoctors([]);
+            toast.error('Failed to load doctors list');
         }
     };
 
-    const MOCK_DOCTORS = [
-        // A - Allergists
-        { id: '1', firstName: 'Alice', lastName: 'Johnson', specialization: 'Allergist/Immunologist', diseases: 'Allergies, Asthma, Eczema, Hay Fever, Hives, Immune Deficiency, Anaphylaxis' },
 
-        // A - Anesthesiologists
-        { id: '2', firstName: 'Mark', lastName: 'Davis', specialization: 'Anesthesiologist (Pain Management)', diseases: 'Chronic Pain, Back Pain, Fibromyalgia, Nerve Pain, Post-Surgical Pain' },
-
-        // C - Cardiologists
-        { id: '3', firstName: 'Sarah', lastName: 'Wilson', specialization: 'Cardiologist', diseases: 'Heart Attack, Arrhythmia, Hypertension, Heart Failure, CAD, Aortic Stenosis, Cardiomyopathy' },
-
-        // C - Colon and Rectal Surgeons
-        { id: '4', firstName: 'Gary', lastName: 'Thompson', specialization: 'Colon and Rectal Surgeon', diseases: 'Hemorrhoids, Colon Cancer, Diverticulitis, IBD, Fissures' },
-
-        // D - Dentists
-        { id: '5', firstName: 'Richard', lastName: 'Martinez', specialization: 'Dentist', diseases: 'Toothache, Cavity, Gum Bleeding, Gingivitis, Periodontitis, Impacted Wisdom Teeth' },
-
-        // D - Dermatologists
-        { id: '6', firstName: 'James', lastName: 'Chen', specialization: 'Dermatologist', diseases: 'Acne, Eczema, Psoriasis, Melanoma, Rosacea, Vitiligo, Chickenpox, Shingles, Hives' },
-
-        // E - Emergency Medicine
-        { id: '7', firstName: 'Steven', lastName: 'Clark', specialization: 'Emergency Medicine Specialist', diseases: 'Trauma, Serious Injury, Sudden Illness, Heart Attack, Stroke, Poisoning' },
-
-        // E - Endocrinologists
-        { id: '8', firstName: 'Patricia', lastName: 'Hernandez', specialization: 'Endocrinologist', diseases: 'Diabetes Type 1 & 2, Thyroid Disorders, PCOS, Addison\'s Disease, Cushing\'s Syndrome' },
-
-        // E - ENT Specialists
-        { id: '9', firstName: 'Robert', lastName: 'Taylor', specialization: 'ENT Specialist', diseases: 'Sinusitis, Tonsillitis, Ear Infections, Hearing Loss, Tinnitus, Vertigo, Sleep Apnea' },
-
-        // G - Gastroenterologists
-        { id: '10', firstName: 'Christopher', lastName: 'Lee', specialization: 'Gastroenterologist', diseases: 'IBS, Crohn\'s Disease, Ulcerative Colitis, GERD, Hepatitis, Cirrhosis, Celiac Disease' },
-
-        // G - Geneticists
-        { id: '11', firstName: 'Helen', lastName: 'Wu', specialization: 'Geneticist', diseases: 'Genetic Disorders, Down Syndrome, Cystic Fibrosis, Huntington\'s Disease, Sickle Cell' },
-
-        // G - Geriatricians
-        { id: '12', firstName: 'Betty', lastName: 'White', specialization: 'Geriatrician', diseases: 'Dementia, Alzheimer\'s, Osteoporosis, Frailty, Incontinence (Elderly Care)' },
-
-        // G - Gynecologists / OB-GYN
-        { id: '13', firstName: 'Jennifer', lastName: 'Davis', specialization: 'Gynecologist', diseases: 'Womens Health, Pregnancy, PCOD, Endometriosis, Menopause, Fibroids, Cervical Cancer' },
-
-        // H - Hematologists
-        { id: '14', firstName: 'Steven', lastName: 'King', specialization: 'Hematologist', diseases: 'Anemia, Hemophilia, Leukemia, Lymphoma, Sickle Cell Disease, DVT, Thalassemia' },
-
-        // I - Infectious Disease
-        { id: '15', firstName: 'Amanda', lastName: 'Wright', specialization: 'Infectious Disease Specialist', diseases: 'Influenza, HIV/AIDS, Malaria, Lyme Disease, Dengue, Covid-19, Tuberculosis' },
-
-        // I - Internists
-        { id: '16', firstName: 'George', lastName: 'Baker', specialization: 'Internist', diseases: 'Hypertension, Diabetes, Fatigue, Respiratory Infections, Digestive Issues' },
-
-        // N - Nephrologists
-        { id: '17', firstName: 'Daniel', lastName: 'Kim', specialization: 'Nephrologist', diseases: 'Kidney Stones, Chronic Kidney Disease, UTI, Kidney Failure, Glomerulonephritis' },
-
-        // N - Neurologists
-        { id: '18', firstName: 'Emily', lastName: 'Parker', specialization: 'Neurologist', diseases: 'Acute Flaccid Myelitis (AFM), Alzheimer\'s, ALS, Migraine, Epilepsy, Stroke, Parkinson\'s, MS' },
-
-        // O - Oncologists
-        { id: '19', firstName: 'Brian', lastName: 'Murphy', specialization: 'Oncologist', diseases: 'Breast Cancer, Prostate Cancer, Colon Cancer, Lung Cancer, Leukemia, Lymphoma' },
-
-        // O - Ophthalmologists
-        { id: '20', firstName: 'William', lastName: 'Anderson', specialization: 'Ophthalmologist', diseases: 'Cataracts, Glaucoma, Macular Degeneration, Diabetic Retinopathy, Dry Eye' },
-
-        // O - Orthopedists
-        { id: '21', firstName: 'Michael', lastName: 'Chang', specialization: 'Orthopedist', diseases: 'Arthritis, Osteoporosis, Fractures, Scoliosis, Back Pain, Sciatica, ACL Tear' },
-
-        // O - Osteopaths
-        { id: '22', firstName: 'Andrew', lastName: 'Scott', specialization: 'Osteopath', diseases: 'Musculoskeletal Pain, Joint Issues, Back Pain, Neck Pain, Sports Injuries' },
-
-        // P - Pathologists
-        { id: '23', firstName: 'Karen', lastName: 'Young', specialization: 'Pathologist', diseases: 'Diagnostic Lab Analysis, Tissue Biopsy, Blood Analysis, Cancer Diagnosis' },
-
-        // P - Pediatricians
-        { id: '24', firstName: 'Lisa', lastName: 'Thompson', specialization: 'Pediatrician', diseases: 'Child Care, Vaccination, Growth Issues, Childhood Infections, ADHD' },
-
-        // P - Physiatrists
-        { id: '25', firstName: 'Paul', lastName: 'Evans', specialization: 'Physiatrist', diseases: 'Rehabilitation, Stroke Recovery, Spinal Cord Injury, Brain Injury, Sports Rehab' },
-
-        // P - Plastic Surgeons
-        { id: '26', firstName: 'Jessica', lastName: 'Roberts', specialization: 'Plastic Surgeon', diseases: 'Reconstructive Surgery, Burns, Cleft Lip, Scar Revision, Cosmetic Procedures' },
-
-        // P - Podiatrists
-        { id: '27', firstName: 'Frank', lastName: 'Miller', specialization: 'Podiatrist', diseases: 'Foot Pain, Bunions, Ingrown Toenails, Heel Pain, Diabetic Foot Care' },
-
-        // P - Psychiatrists
-        { id: '28', firstName: 'David', lastName: 'Miller', specialization: 'Psychiatrist', diseases: 'Depression, Anxiety, Bipolar, Schizophrenia, PTSD, OCD, ADHD, Eating Disorders' },
-
-        // P - Pulmonologists
-        { id: '29', firstName: 'Thomas', lastName: 'White', specialization: 'Pulmonologist', diseases: 'Asthma, COPD, Bronchitis, Pneumonia, Lung Cancer, Sleep Apnea, Cystic Fibrosis' },
-
-        // R - Radiologists
-        { id: '30', firstName: 'Ryan', lastName: 'Cooper', specialization: 'Radiologist', diseases: 'X-Ray, MRI, CT Scan, Ultrasound, Mammography Interpretation' },
-
-        // R - Rheumatologists
-        { id: '31', firstName: 'Karen', lastName: 'Scott', specialization: 'Rheumatologist', diseases: 'Rheumatoid Arthritis, Lupus, Gout, Scleroderma, Vasculitis' },
-
-        // S - Sleep Medicine
-        { id: '32', firstName: 'Samuel', lastName: 'Green', specialization: 'Sleep Medicine Specialist', diseases: 'Insomnia, Sleep Apnea, Narcolepsy, Restless Leg Syndrome' },
-
-        // S - Sports Medicine
-        { id: '33', firstName: 'Kevin', lastName: 'Brooks', specialization: 'Sports Medicine Specialist', diseases: 'Sprains, Strains, Tendonitis, Concussion, Fractures, Overuse Injuries' },
-
-        // S - Surgeons (General)
-        { id: '34', firstName: 'Susan', lastName: 'Carter', specialization: 'General Surgeon', diseases: 'Appendicitis, Hernia, Gallbladder Removal, Thyroid Surgery, Trauma Surgery' },
-
-        // U - Urologists
-        { id: '35', firstName: 'Daniel', lastName: 'Kim', specialization: 'Urologist', diseases: 'Kidney Stones, Prostate Enlargement, Urinary Incontinence, ED' },
-
-        // V - Vascular Surgeons
-        { id: '36', firstName: 'Victor', lastName: 'Hugo', specialization: 'Vascular Surgeon', diseases: 'Varicose Veins, Peripheral Artery Disease, Aneurysm, DVT, Carotid Artery Disease' }
-    ];
 
     const handleBookAppointment = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -603,7 +384,7 @@ export default function AppointmentsPage() {
                                 .filter(doc => !selectedSpecialty || doc.specialization === selectedSpecialty)
                                 .map(doc => (
                                     <option key={doc.id} value={doc.id}>
-                                        Dr. {doc.firstName} {doc.lastName} - {doc.specialization}
+                                        {doc.name || `Dr. ${doc.firstName || ''} ${doc.lastName || ''}`} - {doc.specialization}
                                         {doc.diseases ? ` (${doc.diseases})` : ''}
                                     </option>
                                 ))}

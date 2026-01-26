@@ -20,55 +20,7 @@ import { motion } from 'framer-motion';
 import Button from '@/components/ui/Button';
 import PendingPaymentAlert from '@/components/patient/PendingPaymentAlert';
 
-const MOCK_DATA = {
-  appointments: [
-    { id: '1', doctor: { name: 'Dr. Sarah Wilson' }, specialty: 'Cardiologist', date: '2024-03-20T10:00:00', status: 'scheduled', type: 'Check-up' },
-    { id: '2', doctor: { name: 'Dr. James Chen' }, specialty: 'Dermatologist', date: '2024-03-24T14:30:00', status: 'scheduled', type: 'Consultation' }
-  ],
-  medications: [
-    { id: '1', name: 'Amoxicillin', dosage: '500mg', frequency: '3 times daily', timeLeft: '5 days' },
-    { id: '2', name: 'Lisinopril', dosage: '10mg', frequency: 'Once daily', timeLeft: '12 days' }
-  ],
-  reports: [
-    { id: '1', name: 'Blood Test Report', date: '2024-03-15', doctor: 'Dr. Wilson', status: 'Available' },
-    { id: '2', name: 'X-Ray Scan', date: '2024-02-28', doctor: 'Dr. Brown', status: 'Available' }
-  ],
-  vitals: [
-    {
-      date: new Date().toISOString(),
-      data: {
-        vitals: {
-          sugar: '110',
-          bp: '120/80',
-          heart: '72',
-          weight: '75',
-          hemo: '14.5'
-        }
-      }
-    },
-    {
-      date: new Date(Date.now() - 86400000).toISOString(),
-      data: {
-        vitals: {
-          sugar: '115',
-          bp: '122/82',
-          heart: '75',
-          weight: '75.5',
-          hemo: '14.2'
-        }
-      }
-    }
-  ],
-  trends: [
-    { name: 'Mon', sugar: 118, bp: 118, date: '2024-03-11' },
-    { name: 'Tue', sugar: 125, bp: 120, date: '2024-03-12' },
-    { name: 'Wed', sugar: 115, bp: 119, date: '2024-03-13' },
-    { name: 'Thu', sugar: 130, bp: 122, date: '2024-03-14' },
-    { name: 'Fri', sugar: 128, bp: 121, date: '2024-03-15' },
-    { name: 'Sat', sugar: 122, bp: 119, date: '2024-03-16' },
-    { name: 'Sun', sugar: 120, bp: 120, date: '2024-03-17' },
-  ]
-};
+
 
 export default function PatientDashboard() {
   const router = useRouter();
@@ -116,7 +68,7 @@ export default function PatientDashboard() {
           const upcoming = allAppointments.filter((a: any) => a.status === 'scheduled' || a.status === 'confirmed');
           setStats(prev => ({
             ...prev,
-            appointmentsCount: upcoming.length > 0 ? upcoming.length : MOCK_DATA.appointments.length
+            appointmentsCount: upcoming.length
           }));
         }
 
@@ -127,21 +79,21 @@ export default function PatientDashboard() {
             newData.medications = meds;
             setStats(prev => ({ ...prev, medicationsCount: meds.length }));
           } else {
-            newData.medications = MOCK_DATA.medications;
-            setStats(prev => ({ ...prev, medicationsCount: MOCK_DATA.medications.length }));
+            newData.medications = [];
+            setStats(prev => ({ ...prev, medicationsCount: 0 }));
           }
         }
 
         // Process Reports
         if (reportRes.status === 'fulfilled') {
           const reports = reportRes.value.data.data.reports || [];
-          newData.reports = reports.length > 0 ? reports : MOCK_DATA.reports;
+          newData.reports = reports;
         }
 
         // Process Vitals
         if (ehrVitalsRes.status === 'fulfilled') {
           const vitals = ehrVitalsRes.value.data.data.records || [];
-          newData.vitals = vitals.length > 0 ? vitals : MOCK_DATA.vitals;
+          newData.vitals = vitals;
         }
 
         // Process Trends
@@ -177,7 +129,7 @@ export default function PatientDashboard() {
           fillMap(sugarTrends, 'sugar');
           fillMap(bpTrends, 'bp');
           const finalTrends = Array.from(daysMap.values()).sort((a, b) => a.date.localeCompare(b.date));
-          newData.trends = finalTrends.some(t => t.sugar > 0 || t.bp > 0) ? finalTrends : MOCK_DATA.trends;
+          newData.trends = finalTrends;
         }
 
         // Process Pending Payments

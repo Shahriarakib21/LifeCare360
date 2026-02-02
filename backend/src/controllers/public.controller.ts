@@ -351,12 +351,16 @@ export const searchMedicines = async (
 
     const query: any = {
       isActive: true,
+      stock: { [Op.gt]: 0 },
     };
 
     if (q) {
+      // Optimized search using PostgreSQL trigram indexing (pg_trgm)
+      // Matches interior characters in brand name, generic name, or category
       query[Op.or] = [
         { name: { [Op.iLike]: `%${q}%` } },
         { genericName: { [Op.iLike]: `%${q}%` } },
+        { category: { [Op.iLike]: `%${q}%` } },
       ];
     }
 

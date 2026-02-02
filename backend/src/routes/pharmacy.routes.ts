@@ -16,6 +16,7 @@ import {
   updateRefillStatus,
   payOrder,
   createRefillRequest,
+  getAvailablePharmacies,
 } from '../controllers/pharmacy.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 
@@ -25,6 +26,7 @@ const router = express.Router();
 router.get('/medicines/search', searchMedicines);
 router.get('/medicines/:id', getMedicineDetails);
 router.get('/medicines/:id/alternatives', getAlternatives);
+router.get('/list', getAvailablePharmacies);
 
 // Protected routes (General Auth)
 router.use(authenticate);

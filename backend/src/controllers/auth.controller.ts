@@ -9,6 +9,7 @@ import Doctor from '../models/postgres/Doctor.model';
 import { AppError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
 
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const JWT_EXPIRE = process.env.JWT_EXPIRE || '7d';
 
@@ -167,25 +168,25 @@ export const login = async (
     }
 
     // Find user and include password
-    console.log(`[DEBUG] Login attempt for: ${email}`);
+    logger.info(`[DEBUG] Login attempt for: ${email}`);
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      console.log(`[DEBUG] User not found: ${email}`);
+      logger.info(`[DEBUG] User not found: ${email}`);
       throw new AppError('Invalid credentials', 401);
     }
-    console.log(`[DEBUG] User found, checking password...`);
+    logger.info(`[DEBUG] User found, checking password...`);
 
     // Check password
-    console.log(`[DEBUG] Comparing password for user: ${user.email}`);
+    logger.info(`[DEBUG] Comparing password for user: ${user.email}`);
     const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
-      console.log(`[DEBUG] Password mismatch for: ${email}`);
+      logger.info(`[DEBUG] Password mismatch for: ${email}`);
       // CAUTION: Do not log the actual passwords in production!
-      console.log(`[DEBUG] Password verification failed.`);
+      logger.info(`[DEBUG] Password verification failed.`);
       throw new AppError('Invalid credentials', 401);
     }
-    console.log(`[DEBUG] Password matched successfully for: ${email}`);
+    logger.info(`[DEBUG] Password matched successfully for: ${email}`);
 
     // Verify MFA if enabled
     if (user.mfaEnabled) {

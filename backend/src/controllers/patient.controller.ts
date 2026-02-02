@@ -382,12 +382,16 @@ export const getMedications = async (
       throw new AppError('Patient profile not found', 404);
     }
 
+    console.log(`Fetching medications for patient: ${patient._id}`);
+    const start = Date.now();
     const prescriptions = await EHR.find({
       patientId: patient._id,
       type: 'prescription',
     })
       .sort({ date: -1 })
       .populate('recordedBy', 'profile');
+
+    console.log(`Found ${prescriptions.length} prescriptions in ${Date.now() - start}ms`);
 
     res.json({
       success: true,
@@ -1097,6 +1101,81 @@ export const getAppointments = async (
       });
       return;
     }
+    next(error);
+  }
+};
+
+// Get available slots for a doctor on a specific date
+export const getAvailableSlots = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { doctorId, date } = req.query;
+
+    if (!doctorId || !date) {
+      throw new AppError('Doctor ID and date are required', 400);
+    }
+
+    // Verify doctor exists
+    const doctor = await Doctor.findByPk(Number(doctorId));
+    if (!doctor) {
+      throw new AppError('Doctor not found', 404);
+    }
+
+    // Check if doctor is available on the requested day
+    const appointmentDate = new Date(date as string);
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayOfWeek = dayNames[appointmentDate.getDay()];
+
+    if (!doctor.availability?.days || !doctor.availability.days.includes(dayOfWeek)) {
+      res.json({
+        success: true,
+        data: { slots: [] },
+        message: `Doctor is not available on ${dayOfWeek}.`
+      });
+      return;
+    }
+
+    // Get doctor's availability hours
+    const start = doctor.availability?.hours?.start || '09:00';
+    const end = doctor.availability?.hours?.end || '17:00';
+
+    // Generate all potential slots (every 30 mins)
+    const allSlots: string[] = [];
+    let [h, m] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+
+    while (h < eh || (h === eh && m < em)) {
+      allSlots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
+      m += 30;
+      if (m >= 60) {
+        h++;
+        m = 0;
+      }
+    }
+
+    // Get existing appointments for this doctor and date
+    const existingAppointments = await Appointment.findAll({
+      where: {
+        doctorId: Number(doctorId),
+        date: date as string,
+        status: { [Op.in]: ['scheduled', 'confirmed'] },
+      },
+      attributes: ['time']
+    });
+
+    const bookedTimes = existingAppointments.map(apt => apt.time);
+
+    // Filter available slots
+    const availableSlots = allSlots.filter(slot => !bookedTimes.includes(slot));
+
+    res.json({
+      success: true,
+      data: { slots: availableSlots }
+    });
+  } catch (error) {
     next(error);
   }
 };

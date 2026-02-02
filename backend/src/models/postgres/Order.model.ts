@@ -21,7 +21,10 @@ interface OrderAttributes {
   };
   paymentMethod: 'card' | 'paypal' | 'cash';
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  patientName?: string;
+  patientEmail?: string;
   pharmacyUserId?: string; // MongoDB User ID of the pharmacy
+  prescriptionId?: string; // MongoDB EHR ID
   trackingNumber?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -49,7 +52,10 @@ class Order extends Model<OrderAttributes, OrderCreationAttributes> implements O
   };
   public paymentMethod!: 'card' | 'paypal' | 'cash';
   public paymentStatus!: 'pending' | 'paid' | 'failed' | 'refunded';
+  public patientName?: string;
+  public patientEmail?: string;
   public pharmacyUserId?: string;
+  public prescriptionId?: string; // MongoDB EHR ID
   public trackingNumber?: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -92,7 +98,19 @@ Order.init(
       allowNull: false,
       defaultValue: 'pending',
     },
+    patientName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    patientEmail: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     pharmacyUserId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    prescriptionId: {
       type: DataTypes.STRING,
       allowNull: true,
     },

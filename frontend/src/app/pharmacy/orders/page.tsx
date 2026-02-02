@@ -9,8 +9,8 @@ import Input from '@/components/ui/Input';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
 import toast from 'react-hot-toast';
-
 import { usePharmacyStore, Order } from '@/store/pharmacyStore';
+import MedicineSearch from '@/components/doctor/MedicineSearch';
 
 export default function OrdersPage() {
     const orders = usePharmacyStore((state) => state.orders);
@@ -123,17 +123,15 @@ export default function OrdersPage() {
         const updatedItems = [...newOrder.items];
         const item = { ...updatedItems[index] };
 
-        if (field === 'medicineId') {
-            const medId = parseInt(value);
-            const selectedMed = medicines.find(m => m.id === medId);
-            if (selectedMed) {
-                item.medicineId = medId;
-                item.medicine = selectedMed.name;
-                item.price = selectedMed.price.toString();
-            } else {
-                item.medicineId = 0;
-                item.medicine = '';
-                item.price = '0';
+        if (field === 'medicine_selection') {
+            // value is from MedicineSearch {name, dosage, dosageForm, genericName}
+            item.medicine = value.name;
+            item.price = value.price || '0';
+            // We might need to find the actual medicine ID from store or if it's in the selection
+            const medInStore = medicines.find(m => m.name.toLowerCase() === value.name.toLowerCase());
+            if (medInStore) {
+                item.medicineId = medInStore.id;
+                item.price = medInStore.price.toString();
             }
         } else {
             // @ts-ignore
@@ -301,22 +299,16 @@ export default function OrdersPage() {
                         <label className="block text-sm font-medium text-secondary-700 mb-2">Order Items</label>
                         {newOrder.items.map((item, index) => (
                             <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-2 mb-2 items-center border-b pb-2 md:border-0 md:pb-0">
-                                <div className="md:col-span-6">
-                                    <select
-                                        className="w-full px-3 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-sm"
-                                        value={item.medicineId}
-                                        onChange={(e) => updateOrderItem(index, 'medicineId', e.target.value)}
-                                    >
-                                        <option value={0}>Select Medicine</option>
-                                        {medicines.map(med => (
-                                            <option key={med.id} value={med.id}>
-                                                {med.name} ({med.stock} in stock)
-                                            </option>
-                                        ))}
-                                    </select>
+                                <div className="md:col-span-12">
+                                    <MedicineSearch
+                                        value={item.medicine}
+                                        onChange={(selectedMed) => updateOrderItem(index, 'medicine_selection', selectedMed)}
+                                        placeholder="Search for a medicine..."
+                                    />
                                 </div>
-                                <div className="md:col-span-3">
+                                <div className="md:col-span-6 mt-2">
                                     <Input
+                                        label="Quantity"
                                         type="number"
                                         placeholder="Qty"
                                         min={1}
@@ -324,7 +316,8 @@ export default function OrdersPage() {
                                         onChange={(e) => updateOrderItem(index, 'quantity', parseInt(e.target.value) || 1)}
                                     />
                                 </div>
-                                <div className="md:col-span-3">
+                                <div className="md:col-span-6 mt-2">
+                                    <label className="block text-sm font-medium text-secondary-700 mb-1">Price</label>
                                     <div className="relative">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-500">৳</span>
                                         <input

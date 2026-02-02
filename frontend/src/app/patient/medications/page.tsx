@@ -27,10 +27,16 @@ interface Medication {
     status: 'active' | 'completed' | 'discontinued';
 }
 
+import { ShoppingBag } from 'lucide-react';
+import OrderModal from '@/components/patient/OrderModal';
+
 export default function MedicationsPage() {
     const [medications, setMedications] = useState<Medication[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showOrderModal, setShowOrderModal] = useState(false);
+    const [selectedPrescription, setSelectedPrescription] = useState<any>(null);
+    const [orderMedications, setOrderMedications] = useState<any[]>([]);
     const [reminderData, setReminderData] = useState({
         medication: '',
         time: '',
@@ -45,10 +51,8 @@ export default function MedicationsPage() {
     const fetchMedications = async () => {
         try {
             const res = await api.get('/api/patients/medications');
-            // Helper function to process EHR prescription records into flat medication objects
-            const processed: Medication[] = res.data.data.medications.map((record: any) => {
+            const processed: Medication[] = res.data.data.medications.map((record: any, outerIdx: number) => {
                 const data = record.data?.prescription || {};
-                // Handle inconsistent data structure (array vs single object)
                 const medsList = Array.isArray(data.medications) ? data.medications :
                     data.medication ? [{
                         name: data.medication,
@@ -59,7 +63,7 @@ export default function MedicationsPage() {
                     }] : [];
 
                 return medsList.map((m: any, idx: number) => ({
-                    id: record._id, // Store real EHR ID for refill requests
+                    id: `med_${record._id}_${outerIdx}_${idx}`, // Unique ID for each medication item
                     name: m.name || m.medication || 'Unknown',
                     dosage: m.dosage,
                     frequency: m.frequency,
@@ -69,7 +73,8 @@ export default function MedicationsPage() {
                     prescribedBy: {
                         name: record.recordedBy?.profile ? `Dr. ${record.recordedBy.profile.firstName} ${record.recordedBy.profile.lastName}` : 'Unknown Doctor'
                     },
-                    status: 'active'
+                    status: 'active',
+                    originalRecord: record // Keep ref to original record for ordering entire prescription
                 }));
             }).flat();
 
@@ -82,14 +87,26 @@ export default function MedicationsPage() {
     };
 
     const activeMeds = medications.filter(m => m.status === 'active');
-    const pastMeds = medications.filter(m => m.status !== 'active');
 
-    const handleRefillRequest = async (med: Medication) => {
+    const handleOrderClick = (med: any) => {
+        // Group medications from the same prescription if possible, 
+        // but here we might just order the single one or find all from same ID.
+        // For simplicity, we order the selected medication's "Prescription Context".
+
+        // Find all meds from same original record (same prescription)
+        const relatedMeds = medications.filter(m => (m as any).originalRecord?._id === (med as any).originalRecord?._id);
+
+        setSelectedPrescription({ id: med.originalRecord?._id || med.id }); // Using EHR ID from original record
+        setOrderMedications(relatedMeds);
+        setShowOrderModal(true);
+    };
+
+    const handleRefillRequest = async (med: any) => {
         try {
             await api.post('/api/pharmacy/refills', {
-                prescriptionId: med.id, // This is the EHR record._id
+                prescriptionId: med.originalRecord?._id || med.id, // Use original prescription ID
                 medication: med.name,
-                quantity: parseInt(med.dosage) || 1, // Defaulting to 1 or parsing from dosage if possible
+                quantity: parseInt(med.dosage) || 1,
                 notes: `Refill requested for ${med.name} (${med.dosage})`
             });
             toast.success(`Refill request sent for ${med.name}`);
@@ -111,7 +128,6 @@ export default function MedicationsPage() {
 
     return (
         <div className="space-y-8">
-            {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Medications & Prescriptions</h1>
@@ -131,7 +147,6 @@ export default function MedicationsPage() {
                 <div className="flex justify-center py-12"><LoadingSpinner /></div>
             ) : (
                 <>
-                    {/* Active Medications */}
                     <section>
                         <div className="flex items-center gap-2 mb-4">
                             <div className="p-2 bg-teal-100 rounded-lg text-teal-600"><Pill className="w-5 h-5" /></div>
@@ -166,9 +181,14 @@ export default function MedicationsPage() {
 
                                             <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
                                                 <span className="text-xs text-slate-400">Prescribed by {med.prescribedBy?.name}</span>
-                                                <Button size="sm" variant="ghost" className="text-teal-600 hover:bg-teal-50 h-8" onClick={() => handleRefillRequest(med)}>
-                                                    <RefreshCcw className="w-3 h-3 mr-1.5" /> Refill
-                                                </Button>
+                                                <div className="flex gap-2">
+                                                    <Button size="sm" variant="ghost" className="text-teal-600 hover:bg-teal-50 h-8" onClick={() => handleRefillRequest(med)}>
+                                                        <RefreshCcw className="w-3 h-3 mr-1.5" /> Refill
+                                                    </Button>
+                                                    <Button size="sm" className="bg-teal-600 text-white hover:bg-teal-700 h-8 text-xs" onClick={() => handleOrderClick(med)}>
+                                                        <ShoppingBag className="w-3 h-3 mr-1.5" /> Order
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     </Card>
@@ -176,12 +196,9 @@ export default function MedicationsPage() {
                             </div>
                         )}
                     </section>
-
-                    {/* Past Medications (if any) could go here */}
                 </>
             )}
 
-            {/* Add Reminder Modal */}
             <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Set Medication Reminder">
                 <form onSubmit={handleAddReminder} className="space-y-4">
                     <div>
@@ -219,6 +236,14 @@ export default function MedicationsPage() {
                     <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700">Set Reminder</Button>
                 </form>
             </Modal>
+
+            {/* Order Modal */}
+            <OrderModal
+                isOpen={showOrderModal}
+                onClose={() => setShowOrderModal(false)}
+                prescription={selectedPrescription}
+                medications={orderMedications}
+            />
         </div>
     );
 }

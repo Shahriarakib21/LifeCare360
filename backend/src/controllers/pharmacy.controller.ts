@@ -153,6 +153,164 @@ export const getAlternatives = async (
   }
 };
 
+// Create prescription-based order
+export const createPrescriptionOrder = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const transaction = await sequelize.transaction();
+  try {
+    const userId = req.user!.id;
+    const { prescriptionId, medicines, shippingAddress, paymentMethod, pharmacyId } = req.body;
+
+    if (!prescriptionId) {
+      throw new AppError('Prescription ID is required', 400);
+    }
+
+    if (!medicines || !Array.isArray(medicines) || medicines.length === 0) {
+      throw new AppError('Medicines array is required', 400);
+    }
+
+    if (!shippingAddress) {
+      throw new AppError('Shipping address is required', 400);
+    }
+
+    // Verify prescription exists and belongs to patient
+    const prescription = await EHR.findOne({
+      _id: prescriptionId,
+      patientId: userId,
+      type: 'prescription'
+    });
+
+    if (!prescription) {
+      throw new AppError('Invalid prescription or prescription not found', 404);
+    }
+
+    // Process order items
+    let totalAmount = 0;
+    const orderItems = [];
+    const lowStockItems: { name: string, stock: number }[] = [];
+
+    for (const item of medicines) {
+      if (!item.medicineId) {
+        throw new AppError('Medicine ID is required for ordering', 400);
+      }
+
+      const medicine = await Medicine.findByPk(item.medicineId, { transaction });
+      if (!medicine) {
+        throw new AppError(`Medicine with ID ${item.medicineId} not found`, 404);
+      }
+
+      if (medicine.stock < item.quantity) {
+        throw new AppError(`Insufficient stock for ${medicine.name}`, 400);
+      }
+
+      const price = Number(medicine.price) || 0;
+      const itemTotal = price * item.quantity;
+      totalAmount += itemTotal;
+
+      orderItems.push({
+        medicineId: medicine.id,
+        quantity: item.quantity,
+        price: price,
+        name: medicine.name,
+      });
+
+      const newStock = medicine.stock - item.quantity;
+      await medicine.update(
+        { stock: newStock },
+        { transaction }
+      );
+
+      if (newStock <= 20) {
+        lowStockItems.push({
+          name: medicine.name,
+          stock: newStock
+        });
+      }
+    }
+
+    let pharmacyUserId = pharmacyId;
+    if (!pharmacyUserId) {
+      const pharmacy = await User.findOne({ role: 'pharmacy', isActive: true });
+      pharmacyUserId = pharmacy?._id.toString();
+    }
+
+    const order = await Order.create(
+      {
+        patientId: userId,
+        items: orderItems,
+        totalAmount,
+        shippingAddress,
+        paymentMethod: paymentMethod || 'card',
+        status: 'pending',
+        paymentStatus: 'pending',
+        pharmacyUserId: pharmacyUserId,
+        prescriptionId: prescriptionId
+      },
+      { transaction }
+    );
+
+    await transaction.commit();
+
+    try {
+      if (pharmacyUserId && getIO()) {
+        const patientUser = await User.findById(userId);
+        const patientName = patientUser?.profile ? `${patientUser.profile.firstName} ${patientUser.profile.lastName}` : (patientUser?.email || 'Unknown Patient');
+
+        await notifyNewOrder(
+          getIO(),
+          [pharmacyUserId],
+          patientName,
+          order.id.toString(),
+          totalAmount
+        );
+      }
+    } catch (notifError) {
+      logger.error('Failed to notify pharmacy about prescription order:', notifError);
+    }
+
+    try {
+      const vatAmount = Math.round(totalAmount * 0.05);
+      const serviceCharge = Math.round(totalAmount * 0.02);
+
+      await UnifiedPayment.create({
+        serviceType: 'pharmacy',
+        serviceId: order.id.toString(),
+        patientId: userId,
+        providerId: pharmacyUserId,
+        baseAmount: totalAmount,
+        vatAmount,
+        serviceCharge,
+        totalAmount: totalAmount + vatAmount + serviceCharge,
+        itemBreakdown: orderItems.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          unitPrice: item.price,
+          total: item.price * item.quantity
+        })),
+        metadata: {
+          prescriptionId,
+          orderType: 'prescription_fulfillment'
+        }
+      });
+    } catch (payError) {
+      logger.error('Failed to create payment record for prescription order:', payError);
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Prescription order placed successfully',
+      data: { order }
+    });
+
+  } catch (error) {
+    await transaction.rollback();
+    next(error);
+  }
+};
+
 // Create order
 export const createOrder = async (
   req: AuthRequest,
@@ -774,6 +932,30 @@ export const getDashboardStats = async (
         lowStockItems: lowStockCount,
         newCustomers: totalCustomers, // Can refine this to "new this month"
       }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get available pharmacies
+export const getAvailablePharmacies = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const pharmacies = await User.find({ role: 'pharmacy', isActive: true })
+      .select('profile email _id');
+
+    res.json({
+      success: true,
+      data: pharmacies.map(p => ({
+        id: p._id,
+        name: p.profile?.firstName ? `${p.profile.firstName} ${p.profile.lastName}` : (p.profile?.firstName || 'Pharmacy'),
+        address: 'Dhaka, Bangladesh', // Placeholder until address is in profile or separate model
+        email: p.email
+      }))
     });
   } catch (error) {
     next(error);

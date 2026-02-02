@@ -9,6 +9,8 @@ import Button from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/utils';
 import Card from '@/components/ui/Card';
+import MedicineSearch from '@/components/doctor/MedicineSearch';
+import { usePharmacyStore } from '@/store/pharmacyStore';
 
 const actions = [
     {
@@ -39,6 +41,13 @@ const actions = [
         desc: 'Check delivery status',
         action: 'track-order',
     },
+    {
+        name: 'New Prescription',
+        icon: FileText,
+        color: 'bg-blue-600',
+        desc: 'Record manual Rx',
+        action: 'new-prescription',
+    },
 ];
 
 export function QuickActions() {
@@ -46,6 +55,9 @@ export function QuickActions() {
     const [isUpdateStockOpen, setIsUpdateStockOpen] = useState(false);
     const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
     const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
+    const [isPrescriptionOpen, setIsPrescriptionOpen] = useState(false);
+
+    const addPrescription = usePharmacyStore((state) => state.addPrescription);
 
     const [stockForm, setStockForm] = useState({
         medicineName: '',
@@ -63,6 +75,14 @@ export function QuickActions() {
         orderId: ''
     });
 
+    const [prescriptionForm, setPrescriptionForm] = useState({
+        patientName: '',
+        doctorName: '',
+        medicines: [] as { name: string, dosage: string, quantity: number }[]
+    });
+
+    const [newMed, setNewMed] = useState({ name: '', dosage: '', quantity: 1 });
+
     const handleAction = (actionName: string) => {
         switch (actionName) {
             case 'add-medicine':
@@ -77,6 +97,9 @@ export function QuickActions() {
                 break;
             case 'track-order':
                 setIsTrackOrderOpen(true);
+                break;
+            case 'new-prescription':
+                setIsPrescriptionOpen(true);
                 break;
         }
     };
@@ -144,6 +167,37 @@ export function QuickActions() {
                 items: invoiceForm.items.filter((_, i) => i !== index)
             });
         }
+    };
+
+    const handleAddMedicine = () => {
+        if (!newMed.name || !newMed.dosage) {
+            toast.error('Medicine name and dosage are required');
+            return;
+        }
+        setPrescriptionForm({
+            ...prescriptionForm,
+            medicines: [...prescriptionForm.medicines, { ...newMed }]
+        });
+        setNewMed({ name: '', dosage: '', quantity: 1 });
+    };
+
+    const handlePrescriptionSubmit = () => {
+        if (!prescriptionForm.patientName || !prescriptionForm.doctorName || prescriptionForm.medicines.length === 0) {
+            toast.error('Please fill in all required fields and add at least one medicine');
+            return;
+        }
+
+        addPrescription({
+            patientName: prescriptionForm.patientName,
+            doctorName: prescriptionForm.doctorName,
+            date: new Date().toISOString().split('T')[0],
+            status: 'pending',
+            medicines: prescriptionForm.medicines
+        });
+
+        toast.success(`Prescription created for ${prescriptionForm.patientName}`);
+        setIsPrescriptionOpen(false);
+        setPrescriptionForm({ patientName: '', doctorName: '', medicines: [] });
     };
 
     return (
@@ -318,6 +372,86 @@ export function QuickActions() {
                     <div className="flex gap-3 justify-end pt-4">
                         <Button variant="ghost" onClick={() => setIsTrackOrderOpen(false)}>Cancel</Button>
                         <Button onClick={handleTrackOrder}>Track Order</Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* New Prescription Modal */}
+            <Modal
+                isOpen={isPrescriptionOpen}
+                onClose={() => setIsPrescriptionOpen(false)}
+                title="New Prescription"
+            >
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 gap-4">
+                        <Input
+                            label="Patient Name"
+                            placeholder="Full name"
+                            value={prescriptionForm.patientName}
+                            onChange={(e) => setPrescriptionForm({ ...prescriptionForm, patientName: e.target.value })}
+                        />
+                        <Input
+                            label="Doctor Name"
+                            placeholder="Dr. Name"
+                            value={prescriptionForm.doctorName}
+                            onChange={(e) => setPrescriptionForm({ ...prescriptionForm, doctorName: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="border-t pt-4">
+                        <label className="block text-xs font-black text-secondary-400 uppercase tracking-widest mb-3">Add Medications</label>
+                        <div className="space-y-3">
+                            <MedicineSearch
+                                value={newMed.name}
+                                onChange={(med) => setNewMed({ ...newMed, name: med.name, dosage: med.dosage || newMed.dosage })}
+                                placeholder="Search medicine..."
+                            />
+                            <div className="flex gap-2">
+                                <Input
+                                    placeholder="Dosage"
+                                    value={newMed.dosage}
+                                    onChange={(e) => setNewMed({ ...newMed, dosage: e.target.value })}
+                                    className="flex-1"
+                                />
+                                <Input
+                                    type="number"
+                                    placeholder="Qty"
+                                    value={newMed.quantity}
+                                    onChange={(e) => setNewMed({ ...newMed, quantity: parseInt(e.target.value) || 1 })}
+                                    className="w-20"
+                                />
+                                <Button variant="secondary" onClick={handleAddMedicine} className="h-[42px] px-3">
+                                    <Plus className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        {prescriptionForm.medicines.length > 0 && (
+                            <div className="mt-4 space-y-2 max-h-40 overflow-y-auto pr-2">
+                                {prescriptionForm.medicines.map((med, idx) => (
+                                    <div key={idx} className="flex justify-between items-center bg-secondary-50 p-3 rounded-2xl border border-secondary-100 group/med">
+                                        <div>
+                                            <p className="text-sm font-bold text-secondary-900">{med.name}</p>
+                                            <p className="text-[10px] text-secondary-500 font-bold uppercase tracking-tight">{med.dosage} • Qty: {med.quantity}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => setPrescriptionForm({
+                                                ...prescriptionForm,
+                                                medicines: prescriptionForm.medicines.filter((_, i) => i !== idx)
+                                            })}
+                                            className="p-1.5 text-secondary-400 hover:text-error-600 transition-colors"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex gap-3 justify-end pt-4 border-t">
+                        <Button variant="ghost" onClick={() => setIsPrescriptionOpen(false)}>Cancel</Button>
+                        <Button onClick={handlePrescriptionSubmit} className="px-8">Finalize RX</Button>
                     </div>
                 </div>
             </Modal>

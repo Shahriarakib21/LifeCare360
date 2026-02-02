@@ -12,6 +12,7 @@ import {
   getEmergencyContacts,
   addEmergencyContact,
   getAppointments,
+  getAvailableSlots,
   getLabReports,
   uploadPrescription,
   generatePrescriptionPDF,
@@ -30,6 +31,7 @@ import {
   getLabOrders,
 } from '../controllers/patient.controller';
 import { processLabPayment, getAvailableLabsForTests } from '../controllers/lab.controller';
+import { createPrescriptionOrder } from '../controllers/pharmacy.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { upload } from '../middleware/upload.middleware';
 
@@ -52,6 +54,7 @@ router.put('/consent', updateConsentSettings);
 router.get('/emergency-contacts', getEmergencyContacts);
 router.post('/emergency-contacts', addEmergencyContact);
 router.get('/appointments', getAppointments);
+router.get('/appointments/available-slots', getAvailableSlots);
 router.post('/appointments', bookAppointment);
 router.get('/lab-reports', getLabReports);
 router.post('/prescriptions/upload', upload.single('file'), uploadPrescription);
@@ -70,6 +73,7 @@ router.post('/lab-requests/assign', assignLabToRequest);
 router.post('/lab-requests/pay', processLabPayment);
 router.post('/lab-orders', createLabOrder);
 router.get('/lab-orders', getLabOrders);
+router.post('/orders/prescription', createPrescriptionOrder);
 
 export default router;
 

@@ -23,8 +23,8 @@ async function createAdmin() {
         await mongoose.connect(MONGODB_URI);
         console.log('Connected to MongoDB');
 
-        const email = 'admin@healthlife.com';
-        const password = 'Admin@123456';
+        const email = 'admin@healthcare.com';
+        const password = 'Admin@12345678';
 
         // Check if user exists
         const existingUser = await User.findOne({ email });

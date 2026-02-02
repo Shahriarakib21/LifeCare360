@@ -13,6 +13,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import api, { handleApiError } from '@/lib/api';
 import toast from 'react-hot-toast';
 import Header from '@/components/layout/Header';
+import MedicineSearch from '@/components/doctor/MedicineSearch';
 
 interface Medication {
   name: string;
@@ -103,7 +104,13 @@ export default function PatientDetailPage() {
   };
 
   const handleApplyTemplate = (template: any) => {
-    setMedications(template.medications.map((m: any) => ({ ...m, instructions: m.instructions || '' })));
+    setMedications(template.medications.map((m: any) => ({
+      ...m,
+      instructions: m.instructions || '',
+      dosage: m.dosage || '',
+      frequency: m.frequency || '',
+      duration: m.duration || ''
+    })));
     setDiagnosis(template.diagnosis || '');
     setPrescriptionNotes(template.notes || '');
     toast.success(`Template "${template.name}" applied`);
@@ -480,18 +487,26 @@ export default function PatientDetailPage() {
           <div>
             <label className="block text-sm font-medium mb-2">Medications</label>
             {medications.map((med, idx) => (
-              <div key={idx} className="grid grid-cols-2 gap-2 mb-2 p-3 border rounded-lg">
+              <div key={idx} className="grid grid-cols-2 gap-2 mb-2 p-3 border rounded-lg bg-white shadow-sm relative group">
+                <div className="col-span-2">
+                  <MedicineSearch
+                    value={med.name}
+                    onChange={(selectedMed) => {
+                      const updated = [...medications];
+                      updated[idx] = {
+                        ...updated[idx],
+                        name: selectedMed.name,
+                        dosage: selectedMed.dosage || updated[idx].dosage,
+                        instructions: selectedMed.instructions || updated[idx].instructions
+                      };
+                      setMedications(updated);
+
+                      // If it's a new medicine selection with metadata, we could also log it or handle it
+                    }}
+                  />
+                </div>
                 <Input
-                  placeholder="Medicine name"
-                  value={med.name}
-                  onChange={(e) => {
-                    const updated = [...medications];
-                    updated[idx].name = e.target.value;
-                    setMedications(updated);
-                  }}
-                />
-                <Input
-                  placeholder="Dosage"
+                  placeholder="Dosage (e.g., 500mg)"
                   value={med.dosage}
                   onChange={(e) => {
                     const updated = [...medications];
@@ -527,6 +542,17 @@ export default function PatientDetailPage() {
                   }}
                   className="col-span-2"
                 />
+                {medications.length > 1 && (
+                  <button
+                    onClick={() => {
+                      const updated = medications.filter((_, i) => i !== idx);
+                      setMedications(updated);
+                    }}
+                    className="absolute -right-2 -top-2 bg-error-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
               </div>
             ))}
             <Button

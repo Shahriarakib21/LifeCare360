@@ -144,14 +144,17 @@ Medicine.init(
       { fields: ['genericName'] },
       { fields: ['category'] },
       { fields: ['isActive'] },
-      // Note: Full-text search with gin_trgm_ops requires pg_trgm extension
-      // To enable: CREATE EXTENSION IF NOT EXISTS pg_trgm;
-      // Then uncomment the index below:
-      // {
-      //   fields: ['name', 'genericName', 'description'],
-      //   using: 'gin',
-      //   operator: 'gin_trgm_ops',
-      // },
+      // Full-text search with gin_trgm_ops for fast ILIKE searches
+      {
+        fields: ['name'],
+        using: 'gin',
+        operator: 'gin_trgm_ops',
+      },
+      {
+        fields: ['genericName'],
+        using: 'gin',
+        operator: 'gin_trgm_ops',
+      },
     ],
   }
 );

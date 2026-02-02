@@ -28,6 +28,7 @@ import hospitalRoutes from './routes/hospital.routes';
 import insuranceRoutes from './routes/insurance.routes';
 import adminRoutes from './routes/admin.routes';
 import notificationRoutes from './routes/notification.routes';
+import orderRoutes from './routes/order.routes';
 import paymentRoutes from './routes/payment.routes';
 
 const app = express();
@@ -123,6 +124,7 @@ app.use('/api/hospitals', generalRateLimiter, hospitalRoutes);
 app.use('/api/insurance', generalRateLimiter, insuranceRoutes);
 app.use('/api/admin', generalRateLimiter, adminRoutes);
 app.use('/api/notifications', generalRateLimiter, notificationRoutes);
+app.use('/api/orders', generalRateLimiter, orderRoutes);
 app.use('/api/payments', generalRateLimiter, paymentRoutes);
 
 // Error handling middleware (must be last)

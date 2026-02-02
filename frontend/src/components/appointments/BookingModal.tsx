@@ -33,6 +33,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, doctor, on
   const { user, isAuthenticated } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ date: '', time: '', type: 'in-person' as 'in-person' | 'video' });
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [fetchingSlots, setFetchingSlots] = useState(false);
 
   const isPatient = user?.role === 'patient';
 
@@ -43,20 +45,41 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, doctor, on
     return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
   };
 
-  const timeSlots = useMemo(() => {
-    const slots = [];
-    const start = doctor?.availability?.hours?.start || '09:00';
-    const end = doctor?.availability?.hours?.end || '17:00';
-    let [h, m] = start.split(':').map(Number);
-    const [eh, em] = end.split(':').map(Number);
+  useEffect(() => {
+    const fetchAvailableSlots = async () => {
+      if (!doctor?.id || !formData.date) {
+        setAvailableSlots([]);
+        setFormData(prev => ({ ...prev, time: '' }));
+        return;
+      }
 
-    while (h < eh || (h === eh && m < em)) {
-      slots.push(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
-      m += 30;
-      if (m >= 60) { h++; m = 0; }
-    }
-    return slots;
-  }, [doctor]);
+      setFetchingSlots(true);
+      try {
+        const api = (await import('@/lib/api')).default;
+        const response = await api.get('/api/patients/appointments/available-slots', {
+          params: { doctorId: doctor.id, date: formData.date }
+        });
+        const slots = response.data.data.slots;
+        setAvailableSlots(slots);
+
+        // Reset selected time if it's no longer available
+        setFormData(prev => {
+          if (prev.time && !slots.includes(prev.time)) {
+            return { ...prev, time: '' };
+          }
+          return prev;
+        });
+      } catch (err) {
+        console.error('Failed to fetch slots:', err);
+        setAvailableSlots([]);
+        setFormData(prev => ({ ...prev, time: '' }));
+      } finally {
+        setFetchingSlots(false);
+      }
+    };
+
+    fetchAvailableSlots();
+  }, [doctor?.id, formData.date]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,9 +128,17 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, doctor, on
 
         <div className="space-y-2">
           <label className="text-sm font-medium">Select Time</label>
-          <select className="w-full p-2 border rounded" value={formData.time} onChange={e => setFormData({ ...formData, time: e.target.value })} required>
-            <option value="">Choose slot</option>
-            {timeSlots.map(s => <option key={s} value={s}>{formatTime12Hour(s)}</option>)}
+          <select
+            className="w-full p-2 border rounded"
+            value={formData.time}
+            onChange={e => setFormData({ ...formData, time: e.target.value })}
+            required
+            disabled={fetchingSlots || !formData.date}
+          >
+            <option value="">
+              {fetchingSlots ? 'Loading slots...' : !formData.date ? 'Select date first' : availableSlots.length > 0 ? 'Choose slot' : 'No slots available'}
+            </option>
+            {availableSlots.map(s => <option key={s} value={s}>{formatTime12Hour(s)}</option>)}
           </select>
         </div>
 

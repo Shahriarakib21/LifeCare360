@@ -574,10 +574,6 @@ export const createPrescription = async (
         // Notify Patient
         const { createNotification, sendRealtimeNotification } = await import('../utils/notifications');
         const patientNotification = await createNotification(
-          patient._id, // Use patient._id (which refers to Mongo ID of Patient model? No, Notification needs userId)
-          // Wait, patient._id in createPrescription comes from `Patient.findById(patientId)`. 
-          // Patient model has `userId`. Notification model wants `userId`.
-          // So we should use `patient.userId`.
           patient.userId!,
           'prescription_created',
           'New Prescription Received',

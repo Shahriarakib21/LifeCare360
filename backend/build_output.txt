@@ -1,0 +1,11 @@
+﻿
+> healthlife-backend@1.0.0 build
+> tsc
+
+src/controllers/doctor.controller.ts(585,11): error TS2554: Expected 4-5 arguments, but got 6.
+src/controllers/patient.controller.ts(2393,29): error TS2339: Property 'testName' does not exist on type '{ name: any; testCode: any; price: any; }'.
+src/controllers/patient.controller.ts(2401,49): error TS2339: Property 'testName' does not exist on type '{ name: any; testCode: any; price: any; }'.
+src/routes/payment.routes.ts(50,28): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: Request, res: Response) => Promise<Response<any, Record<string, any>>>' is not assignable to parameter of type 'Application<Record<string, any>>'.
+      Type '(req: Request, res: Response<any, Record<string, any>>) => Promise<Response<any, Record<string, any>>>' is missing the following properties from type 'Application<Record<string, any>>': init, defaultConfiguration, engine, set, and 63 more.

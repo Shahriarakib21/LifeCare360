@@ -4,7 +4,6 @@ import {
     completePayment,
     getPendingPayments,
     getPaymentByInvoice,
-    expireOldPayments,
 } from '../controllers/unifiedPayment.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 
@@ -41,12 +40,5 @@ router.get('/pending', getPendingPayments);
  * @access  Private (Patient)
  */
 router.get('/:invoiceId', getPaymentByInvoice);
-
-/**
- * @route   POST /api/payments/expire-old
- * @desc    Expire old pending payments (cron job)
- * @access  Private (Admin/System)
- */
-router.post('/expire-old', expireOldPayments);
 
 export default router;

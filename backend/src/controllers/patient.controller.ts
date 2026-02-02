@@ -2390,7 +2390,7 @@ export const createLabOrder = async (
         serviceCharge,
         totalAmount: baseAmount + vatAmount + serviceCharge,
         itemBreakdown: tests.map(t => ({
-          name: t.name || t.testName || 'Lab Test',
+          name: t.name || 'Lab Test',
           quantity: 1,
           unitPrice: t.price,
           total: t.price
@@ -2398,7 +2398,7 @@ export const createLabOrder = async (
         expiresAt: new Date(Date.now() + 30 * 60 * 1000),
         metadata: {
           labName,
-          testNames: tests.map(t => t.name || t.testName || 'Lab Test')
+          testNames: tests.map(t => t.name || 'Lab Test')
         }
       });
     } catch (payError) {

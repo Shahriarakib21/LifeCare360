@@ -43,7 +43,7 @@ export interface Order {
         price: number;
     }>;
     totalAmount: number;
-    status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+    status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'completed';
     paymentStatus: string;
     createdAt: string;
 }

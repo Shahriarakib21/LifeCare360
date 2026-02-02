@@ -19,7 +19,7 @@ const sequelize = new Sequelize(
     dialect: 'postgres',
     logging: (msg) => logger.info(msg),
     pool: {
-      max: 5,
+      max: 10,
       min: 0,
       acquire: 30000,
       idle: 10000,
@@ -33,8 +33,8 @@ const connectMongoDB = async (): Promise<void> => {
     await mongoose.connect(MONGODB_URI);
     logger.info('✅ MongoDB connected successfully');
   } catch (error) {
-    logger.error('❌ MongoDB connection error:', error);
-    process.exit(1);
+    logger.error('❌ MongoDB connection error (continuing...):', error);
+    // process.exit(1); // Do not exit, try to keep server alive or retry
   }
 };
 
@@ -44,7 +44,9 @@ const connectPostgreSQL = async (): Promise<void> => {
     await sequelize.authenticate();
     logger.info('✅ PostgreSQL connected successfully');
 
-
+    // Sync models
+    await sequelize.sync({ alter: true });
+    logger.info('✅ PostgreSQL models synced successfully');
   } catch (error) {
     logger.warn('⚠️  PostgreSQL connection error (continuing without PostgreSQL):', error);
     // Don't exit - allow server to run without PostgreSQL for development

@@ -12,6 +12,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
+import { cn } from '@/lib/utils';
 
 import { motion } from 'framer-motion';
 import ImagePlaceholder from '@/components/ui/ImagePlaceholder';
@@ -159,7 +160,7 @@ export default function DoctorDashboard() {
                   </div>
                   <h2 className="text-xl font-black text-secondary-900 tracking-tight">Active Queue</h2>
                 </div>
-                <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-secondary-50">
+                <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-secondary-50">
                   Live View
                 </Badge>
               </div>

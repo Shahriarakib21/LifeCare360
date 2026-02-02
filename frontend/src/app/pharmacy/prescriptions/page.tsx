@@ -10,6 +10,7 @@ import Modal from '@/components/ui/Modal';
 import toast from 'react-hot-toast';
 import { usePharmacyStore } from '@/store/pharmacyStore';
 import type { Prescription } from '@/store/pharmacyStore';
+import MedicineSearch from '@/components/doctor/MedicineSearch';
 
 export default function PrescriptionsPage() {
     // Pharmacy store
@@ -182,6 +183,14 @@ export default function PrescriptionsPage() {
             medicines: [...addForm.medicines, { ...newMed }]
         });
         setNewMed({ name: '', dosage: '', quantity: 1 });
+    };
+
+    const handleMedicineSelection = (selectedMed: any) => {
+        setNewMed({
+            ...newMed,
+            name: selectedMed.name,
+            dosage: selectedMed.dosage || newMed.dosage
+        });
     };
 
     const handleRemoveMedicine = (index: number) => {
@@ -427,29 +436,30 @@ export default function PrescriptionsPage() {
                     />
                     <div>
                         <label className="block text-sm font-medium text-secondary-700 mb-2">Add Medicine</label>
-                        <div className="flex gap-2 mb-2">
-                            <Input
-                                placeholder="Medicine Name"
+                        <div className="space-y-4 mb-4">
+                            <MedicineSearch
                                 value={newMed.name}
-                                onChange={(e) => setNewMed({ ...newMed, name: e.target.value })}
-                                containerClassName="flex-1"
+                                onChange={handleMedicineSelection}
+                                placeholder="Search for generic or brand name..."
                             />
-                            <Input
-                                placeholder="Dosage"
-                                value={newMed.dosage}
-                                onChange={(e) => setNewMed({ ...newMed, dosage: e.target.value })}
-                                containerClassName="flex-1"
-                            />
-                            <Input
-                                type="number"
-                                placeholder="Qty"
-                                value={newMed.quantity.toString()}
-                                onChange={(e) => setNewMed({ ...newMed, quantity: parseInt(e.target.value) || 1 })}
-                                containerClassName="w-20"
-                            />
-                            <Button onClick={handleAddMedicine} variant="secondary">
-                                <Plus className="w-4 h-4" />
-                            </Button>
+                            <div className="flex gap-2">
+                                <Input
+                                    placeholder="Dosage (e.g. 1-0-1)"
+                                    value={newMed.dosage}
+                                    onChange={(e) => setNewMed({ ...newMed, dosage: e.target.value })}
+                                    containerClassName="flex-1"
+                                />
+                                <Input
+                                    type="number"
+                                    placeholder="Qty"
+                                    value={newMed.quantity.toString()}
+                                    onChange={(e) => setNewMed({ ...newMed, quantity: parseInt(e.target.value) || 1 })}
+                                    containerClassName="w-24"
+                                />
+                                <Button onClick={handleAddMedicine} variant="secondary">
+                                    <Plus className="w-4 h-4" />
+                                </Button>
+                            </div>
                         </div>
 
                         {/* List of meds to add */}

@@ -10,6 +10,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   fullWidth?: boolean;
+  containerClassName?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -22,6 +23,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       rightIcon,
       fullWidth = true,
       className,
+      containerClassName,
       id,
       ...props
     },
@@ -31,7 +33,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const inputId = id || generatedId;
 
     return (
-      <div className={cn('flex flex-col', fullWidth && 'w-full')}>
+      <div className={cn('flex flex-col', fullWidth && 'w-full', containerClassName)}>
         {label && (
           <label
             htmlFor={inputId}
@@ -41,14 +43,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {props.required && <span className="text-error-500 ml-1">*</span>}
           </label>
         )}
-        
+
         <div className="relative">
           {leftIcon && (
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-400">
               {leftIcon}
             </div>
           )}
-          
+
           <input
             ref={ref}
             id={inputId}
@@ -70,14 +72,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
             {...props}
           />
-          
+
           {rightIcon && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-400">
               {rightIcon}
             </div>
           )}
         </div>
-        
+
         {error && (
           <p
             id={`${inputId}-error`}
@@ -87,7 +89,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {error}
           </p>
         )}
-        
+
         {helperText && !error && (
           <p
             id={`${inputId}-helper`}

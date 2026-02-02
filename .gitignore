@@ -40,3 +40,7 @@ frontend/out/
 frontend/.next/
 frontend/node_modules/
 backend/node_modules/
+backend/data/
+backend/mongodb_data/
+*.db
+*.log

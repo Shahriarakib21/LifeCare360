@@ -14,6 +14,10 @@ import { getIO } from '../utils/socket';
 import { createNotification, notifyLabPayment, notifyResultUploaded } from '../utils/notifications';
 import RevenueTransaction from '../models/mongodb/RevenueTransaction.model';
 import UnifiedPayment from '../models/mongodb/UnifiedPayment.model';
+import LabTest from '../models/postgres/LabTest.model';
+import LabRequest from '../models/postgres/LabRequest.model';
+import LabRequestItem from '../models/postgres/LabRequestItem.model';
+import { Op } from 'sequelize';
 
 /**
  * Internal helper to sync revenue when a lab test is completed and paid
@@ -2465,6 +2469,137 @@ export const assignLabToRequest = async (
       data: { request },
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+// --- New PostgreSQL Lab Management Functions ---
+
+/**
+ * Get all available lab tests from the master list (PostgreSQL)
+ */
+export const getAllLabTests = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { search, category } = req.query;
+    const query: any = {};
+
+    if (search) {
+      query.name = { [Op.iLike]: `%${search}%` };
+    }
+    if (category) {
+      query.category = category;
+    }
+
+    const tests = await LabTest.findAll({
+      where: query,
+      order: [['name', 'ASC']]
+    });
+
+    res.json({
+      success: true,
+      data: { tests }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Create a new lab request (PostgreSQL)
+ */
+export const createPostgresLabRequest = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { patientId, testIds, notes } = req.body;
+    const doctorId = req.user!.id;
+
+    if (!patientId || !testIds || !Array.isArray(testIds) || testIds.length === 0) {
+      throw new AppError('Patient ID and at least one test are required', 400);
+    }
+
+    // Calculate total bill
+    const tests = await LabTest.findAll({
+      where: { id: { [Op.in]: testIds } }
+    });
+
+    const totalBill = tests.reduce((sum, test) => sum + Number(test.priceBDT), 0);
+
+    // Create Lab Request
+    const request = await LabRequest.create({
+      doctorId,
+      patientId,
+      totalBill,
+      status: 'Pending'
+    });
+
+    // Create Request Items
+    const items = await Promise.all(
+      testIds.map(testId => LabRequestItem.create({
+        requestId: request.id,
+        testId
+      }))
+    );
+
+    // Create a shadow EHR record in MongoDB for backward compatibility/history tracking if requested
+    // (Optional: depending on how much we want to decouple)
+
+    res.status(201).json({
+      success: true,
+      message: 'Lab request created successfully',
+      data: { request, items }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get lab requests for a patient or all requests if lab staff (PostgreSQL)
+ */
+export const getPostgresLabRequests = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { patientId, status } = req.query;
+    const { id: userId, role } = req.user!;
+
+    const query: any = {};
+    if (status) query.status = status;
+
+    if (role === 'patient') {
+      const patient = await Patient.findOne({ userId });
+      if (!patient) throw new AppError('Patient profile not found', 404);
+      query.patientId = patient.userId.toString();
+    } else if (patientId) {
+      query.patientId = patientId;
+    }
+
+    const requests = await LabRequest.findAll({
+      where: query,
+      include: [
+        {
+          model: LabRequestItem,
+          as: 'items',
+          include: [{ model: LabTest, as: 'test' }]
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.json({
+      success: true,
+      data: { requests }
+    });
+  } catch (error: any) {
     next(error);
   }
 };

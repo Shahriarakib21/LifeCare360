@@ -1,0 +1,4 @@
+Connected to PostgreSQL
+All Tables: doctors, appointments, orders, medicines, ratings
+
+Table medical_lab_train or lab-related table not found.

@@ -92,22 +92,18 @@ Medicine.init(
     indications: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false,
-      defaultValue: [],
     },
     sideEffects: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false,
-      defaultValue: [],
     },
     contraindications: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false,
-      defaultValue: [],
     },
     interactions: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false,
-      defaultValue: [],
     },
     storageConditions: {
       type: DataTypes.TEXT,
@@ -133,7 +129,6 @@ Medicine.init(
     seoKeywords: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false,
-      defaultValue: [],
     },
   },
   {

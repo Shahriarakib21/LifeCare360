@@ -51,7 +51,7 @@ export default function LabsListingPage() {
     const [testResults, setTestResults] = useState<TestResult[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [searchMode, setSearchMode] = useState<'lab' | 'test'>('lab');
+    const [searchMode, setSearchMode] = useState<'lab' | 'test'>('test');
     const [selectedCity, setSelectedCity] = useState('');
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
     const [showFilters, setShowFilters] = useState(false);
@@ -64,7 +64,11 @@ export default function LabsListingPage() {
                 setLabs(response.data?.data?.labs || []);
                 setTestResults([]);
             } else {
-                const response = await api.get(`/api/public/lab-tests/search?q=${searchQuery}`);
+                // If query is empty, fetch all tests (or limited set) by passing empty q
+                const endpoint = searchQuery
+                    ? `/api/public/lab-tests/search?q=${searchQuery}`
+                    : `/api/public/lab-tests/search?q=`;
+                const response = await api.get(endpoint);
                 setTestResults(response.data?.data?.tests || []);
                 setLabs([]);
             }
@@ -133,7 +137,7 @@ export default function LabsListingPage() {
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                     <input
                                         type="text"
-                                        placeholder={searchMode === 'lab' ? "Search laboratory by name..." : "Search for specific test (e.g. CBC, MRI)..."}
+                                        placeholder={searchMode === 'lab' ? "Search laboratory by name..." : "Search for specific test (e.g. CBC, MRI) or browse all..."}
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-50 border-none focus:ring-0 text-slate-900 font-semibold placeholder:text-slate-400"

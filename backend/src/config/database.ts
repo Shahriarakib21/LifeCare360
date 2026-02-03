@@ -17,7 +17,10 @@ const sequelize = new Sequelize(
     host: process.env.POSTGRES_HOST || 'localhost',
     port: parseInt(process.env.POSTGRES_PORT || '5432'),
     dialect: 'postgres',
-    logging: (msg) => logger.info(msg),
+    logging: (msg) => {
+      // Only log non-SELECT statements to reduce noise, or log everything for now
+      logger.info(msg);
+    },
     pool: {
       max: 10,
       min: 0,
@@ -34,7 +37,6 @@ const connectMongoDB = async (): Promise<void> => {
     logger.info('✅ MongoDB connected successfully');
   } catch (error) {
     logger.error('❌ MongoDB connection error (continuing...):', error);
-    // process.exit(1); // Do not exit, try to keep server alive or retry
   }
 };
 
@@ -48,9 +50,11 @@ const connectPostgreSQL = async (): Promise<void> => {
     await sequelize.sync({ alter: true });
     logger.info('✅ PostgreSQL models synced successfully');
   } catch (error) {
-    logger.warn('⚠️  PostgreSQL connection error (continuing without PostgreSQL):', error);
-    // Don't exit - allow server to run without PostgreSQL for development
-    // Some features requiring PostgreSQL won't work, but basic API will function
+    logger.warn('⚠️  PostgreSQL connection error (continuing without PostgreSQL):', {
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+      error
+    });
   }
 };
 
@@ -62,4 +66,3 @@ const connectDB = async (): Promise<void> => {
 
 export { sequelize };
 export default connectDB;
-

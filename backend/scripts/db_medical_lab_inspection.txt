@@ -1,0 +1,84 @@
+Connected to medical_lab_db
+Tables: medical_lab_tests
+
+--- Inspecting medical_lab_tests ---
+Columns: [
+  {
+    "column_name": "age",
+    "data_type": "integer"
+  },
+  {
+    "column_name": "test_value",
+    "data_type": "numeric"
+  },
+  {
+    "column_name": "lab_test_name",
+    "data_type": "character varying"
+  },
+  {
+    "column_name": "unit",
+    "data_type": "character varying"
+  },
+  {
+    "column_name": "reference_range",
+    "data_type": "character varying"
+  },
+  {
+    "column_name": "test_result",
+    "data_type": "character varying"
+  },
+  {
+    "column_name": "gender",
+    "data_type": "character varying"
+  },
+  {
+    "column_name": "patient_id",
+    "data_type": "character varying"
+  },
+  {
+    "column_name": "disease_label",
+    "data_type": "character varying"
+  },
+  {
+    "column_name": "test_category",
+    "data_type": "character varying"
+  }
+]
+Sample Data: [
+  {
+    "patient_id": "P06609",
+    "test_category": "Thyroid",
+    "lab_test_name": "TSH",
+    "test_value": "4.9",
+    "unit": "µIU/mL",
+    "reference_range": "0.4-8.0",
+    "test_result": "Normal",
+    "gender": "Male",
+    "age": 74,
+    "disease_label": "Thyroid Disorder"
+  },
+  {
+    "patient_id": "P01166",
+    "test_category": "Blood",
+    "lab_test_name": "Hemoglobin",
+    "test_value": "14.52",
+    "unit": "g/dL",
+    "reference_range": "13-13.600000000000001",
+    "test_result": "High",
+    "gender": "Male",
+    "age": 48,
+    "disease_label": "Healthy"
+  },
+  {
+    "patient_id": "P00422",
+    "test_category": "Lipid",
+    "lab_test_name": "Total Cholesterol",
+    "test_value": "183.73",
+    "unit": "mg/dL",
+    "reference_range": "120-224.0",
+    "test_result": "Normal",
+    "gender": "Female",
+    "age": 42,
+    "disease_label": "Healthy"
+  }
+]

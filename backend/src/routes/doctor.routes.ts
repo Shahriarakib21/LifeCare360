@@ -24,6 +24,7 @@ import {
   deleteTemplate,
 } from '../controllers/prescriptionTemplate.controller';
 import { assignLabToRequest } from '../controllers/patient.controller';
+import { getAllLabTests, createPostgresLabRequest, getPostgresLabRequests } from '../controllers/lab.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 
 const router = express.Router();
@@ -53,6 +54,9 @@ router.get('/patients/:patientId/history', getPatientHistory);
 router.post('/prescriptions', createPrescription);
 router.post('/diagnosis', createDiagnosis);
 router.post('/lab-tests/request', requestLabTest);
+router.get('/lab-tests/master', getAllLabTests);
+router.post('/lab-tests/postgres-request', createPostgresLabRequest);
+router.get('/lab-requests/postgres', getPostgresLabRequests);
 router.post('/lab-requests/assign', assignLabToRequest);
 router.get('/appointments', getAppointments);
 router.post('/appointments', createAppointment);

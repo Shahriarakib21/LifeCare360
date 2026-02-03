@@ -108,26 +108,48 @@ export default function LabDashboard() {
 
     setLoading(true);
     try {
-      const [statsRes, revenueRes, testsRes] = await Promise.all([
+      const [statsRes, revenueRes, testsRes, pgRes] = await Promise.all([
         api.get('/api/labs/dashboard/stats'),
         api.get('/api/labs/revenue/analytics'),
-        api.get('/api/labs/requests')
+        api.get('/api/labs/requests'),
+        api.get('/api/labs/postgres-requests')
       ]);
 
       const statsData = statsRes.data.data || {};
-      const tests = testsRes.data.data?.requests || [];
+      const mongoRequests = testsRes.data.data?.requests || [];
+      const pgRequests = pgRes.data.data?.requests || [];
+
+      // Map PG requests to common format for the list
+      const formattedPgRequests = pgRequests.map((r: any) => ({
+        _id: r.id,
+        id: r.id,
+        isPostgres: true,
+        patient: { user: { profile: { firstName: 'Patient' } } }, // Simple placeholder for now as PG model needs patient population
+        data: {
+          labTestRequest: {
+            tests: r.items?.map((i: any) => i.test.name) || [],
+            status: r.status,
+            urgency: 'routine'
+          }
+        },
+        date: r.createdAt,
+        status: r.status
+      }));
+
+      const allRequests = [...mongoRequests, ...formattedPgRequests];
+      allRequests.sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime());
 
       const today = new Date().toISOString().split('T')[0];
-      const todayTests = tests.filter((t: any) =>
-        t.date && t.date.split('T')[0] === today
+      const todayTests = allRequests.filter((t: any) =>
+        (t.date || t.createdAt)?.split('T')[0] === today
       );
 
-      const pending = tests.filter((t: any) =>
-        ['ASSIGNED', 'PAID', 'pending', 'REQUESTED', 'IN_PROGRESS'].includes(t.data?.labTestRequest?.status)
+      const pending = allRequests.filter((t: any) =>
+        ['ASSIGNED', 'PAID', 'pending', 'REQUESTED', 'IN_PROGRESS', 'Pending'].includes(t.data?.labTestRequest?.status || t.status)
       );
 
-      const completed = tests.filter((t: any) =>
-        t.data?.labTestRequest?.status === 'completed'
+      const completed = allRequests.filter((t: any) =>
+        (t.data?.labTestRequest?.status || t.status) === 'completed' || (t.data?.labTestRequest?.status || t.status) === 'Completed'
       );
 
       const critical = tests.filter((t: any) =>
@@ -149,7 +171,7 @@ export default function LabDashboard() {
       });
 
       setRevenueAnalytics(revenueRes.data.data);
-      setRecentTests(tests.slice(0, 10));
+      setRecentTests(allRequests.slice(0, 10));
 
       const chartData = [];
       for (let i = 6; i >= 0; i--) {
@@ -157,15 +179,15 @@ export default function LabDashboard() {
         date.setDate(date.getDate() - i);
         const dateStr = date.toISOString().split('T')[0];
 
-        const dayTests = tests.filter((t: any) =>
-          t.date && t.date.split('T')[0] === dateStr
+        const dayTests = allRequests.filter((t: any) =>
+          (t.date || t.createdAt)?.split('T')[0] === dateStr
         );
 
         chartData.push({
           date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
           tests: dayTests.length,
-          completed: dayTests.filter((t: any) => t.data?.labTestRequest?.status === 'completed').length,
-          pending: dayTests.filter((t: any) => t.data?.labTestRequest?.status !== 'completed').length
+          completed: dayTests.filter((t: any) => ['completed', 'Completed'].includes(t.data?.labTestRequest?.status || t.status)).length,
+          pending: dayTests.filter((t: any) => !['completed', 'Completed'].includes(t.data?.labTestRequest?.status || t.status)).length
         });
       }
 

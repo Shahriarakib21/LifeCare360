@@ -27,6 +27,9 @@ async function syncDatabase() {
     const Order = (await import('../src/models/postgres/Order.model')).default;
     const Appointment = (await import('../src/models/postgres/Appointment.model')).default;
     const Rating = (await import('../src/models/postgres/Rating.model')).default;
+    const LabTest = (await import('../src/models/postgres/LabTest.model')).default;
+    const LabRequest = (await import('../src/models/postgres/LabRequest.model')).default;
+    const LabRequestItem = (await import('../src/models/postgres/LabRequestItem.model')).default;
     console.log('✅ All models loaded');
 
     // Verify models are registered
@@ -34,7 +37,7 @@ async function syncDatabase() {
 
     // Sync all models (create tables)
     console.log('\n🔄 Syncing database schema...');
-    await sequelize.sync({ force: false, alter: false });
+    await sequelize.sync({ force: false, alter: true });
     console.log('✅ Database schema synced successfully');
 
     // List created tables
@@ -45,7 +48,7 @@ async function syncDatabase() {
       AND table_type = 'BASE TABLE'
       ORDER BY table_name;
     `);
-    
+
     console.log('\n📊 Created tables:');
     (results as Array<{ table_name: string }>).forEach((row) => {
       console.log(`   - ${row.table_name}`);

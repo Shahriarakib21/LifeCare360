@@ -30,7 +30,7 @@ import {
   createLabOrder,
   getLabOrders,
 } from '../controllers/patient.controller';
-import { processLabPayment, getAvailableLabsForTests } from '../controllers/lab.controller';
+import { processLabPayment, getAvailableLabsForTests, getAllLabTests, getPostgresLabRequests } from '../controllers/lab.controller';
 import { createPrescriptionOrder } from '../controllers/pharmacy.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 import { upload } from '../middleware/upload.middleware';
@@ -73,6 +73,8 @@ router.post('/lab-requests/assign', assignLabToRequest);
 router.post('/lab-requests/pay', processLabPayment);
 router.post('/lab-orders', createLabOrder);
 router.get('/lab-orders', getLabOrders);
+router.get('/lab-tests/master', getAllLabTests);
+router.get('/lab-requests/postgres', getPostgresLabRequests);
 router.post('/orders/prescription', createPrescriptionOrder);
 
 export default router;

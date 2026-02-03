@@ -43,7 +43,7 @@ interface DoctorAttributes {
   updatedAt?: Date;
 }
 
-interface DoctorCreationAttributes extends Optional<DoctorAttributes, 'id' | 'rating' | 'totalReviews' | 'isVerified' | 'isActive' | 'createdAt' | 'updatedAt'> {}
+interface DoctorCreationAttributes extends Optional<DoctorAttributes, 'id' | 'rating' | 'totalReviews' | 'isVerified' | 'isActive' | 'createdAt' | 'updatedAt'> { }
 
 class Doctor extends Model<DoctorAttributes, DoctorCreationAttributes> implements DoctorAttributes {
   public id!: number;
@@ -105,7 +105,6 @@ Doctor.init(
     qualifications: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false,
-      defaultValue: [],
     },
     experience: {
       type: DataTypes.INTEGER,
@@ -160,7 +159,6 @@ Doctor.init(
     languages: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false,
-      defaultValue: [],
     },
     isVerified: {
       type: DataTypes.BOOLEAN,
